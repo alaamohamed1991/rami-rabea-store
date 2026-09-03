@@ -1449,10 +1449,14 @@
   var root = document.documentElement;
   var t = { ar:{added:"أُضيف إلى السلة",subscribed:"تم الاشتراك! تحقق من بريدك",checkout:"طلبك التجريبي جاهز — هذا نموذج عرض فقط",
                 camDenied:"تعذّر تشغيل الكاميرا. يرجى السماح بالوصول إليها من إعدادات المتصفح ثم إعادة المحاولة.",
-                noCamera:"هذا المتصفح لا يدعم تشغيل الكاميرا."},
+                noCamera:"هذا المتصفح لا يدعم تشغيل الكاميرا.",
+                camTimeout:"محاولة تشغيل الكاميرا استغرقت وقتًا طويلًا بدون رد. جرّب تفتح رابط الموقع في متصفح عادي (Chrome أو Safari) مباشرة، مش من جوه تطبيق زي فيسبوك أو واتساب أو انستجرام، وتأكد إن صلاحية الكاميرا مش موقوفة للموقع من إعدادات المتصفح.",
+                camInsecure:"تشغيل الكاميرا يحتاج فتح الموقع عبر رابط آمن (https). افتح رابط الموقع مباشرة من متصفحك."},
             en:{added:"Added to cart",subscribed:"Subscribed! Check your inbox",checkout:"Demo checkout complete — this is a preview only",
                 camDenied:"Couldn't access the camera. Please allow camera access in your browser settings and try again.",
-                noCamera:"This browser doesn't support the camera."} };
+                noCamera:"This browser doesn't support the camera.",
+                camTimeout:"Turning on the camera timed out with no response. Try opening the site link directly in a regular browser (Chrome or Safari) rather than inside an app like Facebook, WhatsApp or Instagram, and check that camera access for the site isn't blocked in your browser settings.",
+                camInsecure:"The camera needs a secure (https) link. Open the site link directly in your browser."} };
   var catLabels = {
     men:   {ar:"نظارات طبية للرجال", en:"Prescription — Men"},
     women: {ar:"نظارات طبية للنساء", en:"Prescription — Women"},
@@ -1961,13 +1965,30 @@
     tryonVideo.srcObject = null;
   }
   function startCamera(){
+    if(location.protocol !== "https:" && location.hostname !== "localhost" && location.protocol !== "file:"){
+      tryonError.textContent = t[state.lang].camInsecure;
+      tryonError.hidden = false;
+      tryonGate.hidden = true;
+      return;
+    }
     if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
       tryonError.textContent = t[state.lang].noCamera;
       tryonError.hidden = false;
       tryonGate.hidden = true;
       return;
     }
+    var settled = false;
+    var timeoutId = setTimeout(function(){
+      if(settled) return;
+      settled = true;
+      tryonError.textContent = t[state.lang].camTimeout;
+      tryonError.hidden = false;
+      tryonGate.hidden = true;
+    }, 9000);
     navigator.mediaDevices.getUserMedia({ video:{ facingMode:"user" }, audio:false }).then(function(stream){
+      if(settled){ stream.getTracks().forEach(function(tr){ tr.stop(); }); return; }
+      settled = true;
+      clearTimeout(timeoutId);
       tryonStream = stream;
       tryonVideo.srcObject = stream;
       tryonGate.hidden = true;
@@ -1976,6 +1997,9 @@
       tryonControls.hidden = false;
       applyTF();
     }).catch(function(){
+      if(settled) return;
+      settled = true;
+      clearTimeout(timeoutId);
       tryonError.textContent = t[state.lang].camDenied;
       tryonError.hidden = false;
       tryonGate.hidden = true;
