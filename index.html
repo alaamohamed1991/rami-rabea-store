@@ -641,6 +641,38 @@
   .spec-item .spec-value{ font-weight:600; }
 
   .related-head{ margin-block:2.4rem 1.2rem; padding-block-start:1.6rem; border-block-start:1px solid var(--line); }
+
+  /* ---------- admin panel ---------- */
+  .admin-page{ padding-block-start:1.8rem; }
+  .admin-head{ display:flex; align-items:flex-end; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-block-end:1.4rem; }
+  .admin-msg{ font-size:.86rem; border-radius:.6rem; padding:.7rem .85rem; display:none; margin-block-end:1rem; line-height:1.6; }
+  .admin-msg.show{ display:block; }
+  .admin-msg.error{ background:rgba(200,60,50,.1); color:#c0392b; }
+  .admin-msg.success{ background:rgba(70,150,90,.1); color:#2e7d4f; }
+  .admin-table-wrap{ overflow-x:auto; border:1px solid var(--line); border-radius:var(--radius-lg); }
+  .admin-table{ width:100%; border-collapse:collapse; font-size:.9rem; min-width:560px; }
+  .admin-table th{
+    text-align:start; padding:.85rem 1rem; background:var(--surface-2); color:var(--ink-faint);
+    font-size:.75rem; text-transform:uppercase; letter-spacing:.05em; font-weight:700;
+  }
+  .admin-table td{ padding:.7rem 1rem; border-block-start:1px solid var(--line); vertical-align:middle; }
+  .admin-thumb{ width:2.8rem; height:2.8rem; border-radius:.6rem; overflow:hidden; background:var(--surface-2); flex:none; }
+  .admin-thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .admin-row-actions{ display:flex; gap:.5rem; justify-content:flex-end; }
+  .admin-row-actions button{
+    border:1px solid var(--line); background:transparent; border-radius:.5rem; padding:.4rem .7rem; font-size:.8rem; color:var(--ink);
+  }
+  .admin-row-actions button:hover{ border-color:var(--ink); }
+  .admin-row-actions .admin-delete{ color:#c0392b; border-color:rgba(192,57,43,.35); }
+  .admin-empty{ padding:2.4rem 1rem; text-align:center; color:var(--ink-faint); }
+  .admin-form-box{ max-width:680px; }
+  .admin-form-box h3{ font-size:1.15rem; margin-block-end:1rem; padding-inline-end:2rem; }
+  .admin-form-grid{ display:grid; grid-template-columns:1fr; gap:1rem; }
+  @media (min-width:640px){ .admin-form-grid{ grid-template-columns:1fr 1fr; } }
+  .admin-form-full{ grid-column:1/-1; }
+  .admin-image-preview{ width:5.5rem; height:5.5rem; border-radius:.7rem; overflow:hidden; margin-block-start:.6rem; background:var(--surface-2); }
+  .admin-image-preview img{ width:100%; height:100%; object-fit:cover; display:block; }
+
   .btn-tryon{
     background:var(--brand-dark); color:var(--brand-cream); border-color:var(--brand-dark);
   }
@@ -1031,6 +1063,115 @@
       <div class="grid" id="relatedGrid"></div>
     </div>
   </section>
+
+  <section id="adminPage" class="page-section admin-page" hidden>
+    <div class="wrap">
+      <div class="page-breadcrumb">
+        <a href="#/" data-ar="الرئيسية" data-en="Home">الرئيسية</a>
+        <span class="crumb-sep">/</span>
+        <span data-ar="لوحة التحكم" data-en="Admin panel">لوحة التحكم</span>
+      </div>
+      <div class="admin-head">
+        <div>
+          <span class="eyebrow" data-ar="لوحة التحكم" data-en="Admin panel">لوحة التحكم</span>
+          <h2 data-ar="إدارة المنتجات" data-en="Manage products">إدارة المنتجات</h2>
+        </div>
+        <button class="btn btn-primary" id="adminAddBtn" type="button" data-ar="+ إضافة منتج" data-en="+ Add product">+ إضافة منتج</button>
+      </div>
+
+      <div class="admin-msg" id="adminMsg"></div>
+
+      <div class="admin-table-wrap">
+        <table class="admin-table" id="adminTable">
+          <thead>
+            <tr>
+              <th data-ar="الصورة" data-en="Photo">الصورة</th>
+              <th data-ar="الاسم" data-en="Name">الاسم</th>
+              <th data-ar="الفئة" data-en="Category">الفئة</th>
+              <th data-ar="السعر" data-en="Price">السعر</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="adminTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="adminFormBackdrop">
+      <div class="modal-box auth-box admin-form-box" role="dialog" aria-label="Product form">
+        <button class="icon-btn modal-close" id="adminFormClose" type="button" aria-label="Close">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <div class="auth-body">
+          <h3 id="adminFormTitle" data-ar="إضافة منتج" data-en="Add product">إضافة منتج</h3>
+          <div class="auth-msg" id="adminFormMsg"></div>
+          <form id="adminProductForm">
+            <input type="hidden" id="adminProductId">
+            <div class="admin-form-grid">
+              <div class="auth-field">
+                <label data-ar="الاسم (عربي)" data-en="Name (Arabic)">الاسم (عربي)</label>
+                <input type="text" id="apNameAr" required>
+              </div>
+              <div class="auth-field">
+                <label data-ar="الاسم (إنجليزي)" data-en="Name (English)">الاسم (إنجليزي)</label>
+                <input type="text" id="apNameEn" required>
+              </div>
+              <div class="auth-field">
+                <label data-ar="الوصف (عربي)" data-en="Description (Arabic)">الوصف (عربي)</label>
+                <input type="text" id="apSubAr">
+              </div>
+              <div class="auth-field">
+                <label data-ar="الوصف (إنجليزي)" data-en="Description (English)">الوصف (إنجليزي)</label>
+                <input type="text" id="apSubEn">
+              </div>
+              <div class="auth-field">
+                <label data-ar="الفئة" data-en="Category">الفئة</label>
+                <select id="apCategory">
+                  <option value="men" data-ar="رجالي طبي" data-en="Men — Prescription">رجالي طبي</option>
+                  <option value="women" data-ar="حريمي طبي" data-en="Women — Prescription">حريمي طبي</option>
+                  <option value="men_sun" data-ar="رجالي شمس" data-en="Men — Sunglasses">رجالي شمس</option>
+                  <option value="women_sun" data-ar="حريمي شمس" data-en="Women — Sunglasses">حريمي شمس</option>
+                </select>
+              </div>
+              <div class="auth-field">
+                <label data-ar="الشكل" data-en="Shape">الشكل</label>
+                <select id="apShape">
+                  <option value="aviator">Aviator</option>
+                  <option value="cat">Cat-Eye</option>
+                  <option value="square">Square</option>
+                  <option value="round">Round</option>
+                  <option value="rect">Rectangle</option>
+                  <option value="hex">Hexagon</option>
+                </select>
+              </div>
+              <div class="auth-field">
+                <label data-ar="اللون (كود Hex)" data-en="Color (hex code)">اللون (كود Hex)</label>
+                <input type="text" id="apColor" placeholder="#2b2b2b" value="#2b2b2b">
+              </div>
+              <div class="auth-field">
+                <label data-ar="السعر (ج.م)" data-en="Price (EGP)">السعر (ج.م)</label>
+                <input type="number" id="apPrice" min="0" step="1" required>
+              </div>
+              <div class="auth-field">
+                <label data-ar="وسم (اختياري، عربي)" data-en="Tag (optional, Arabic)">وسم (اختياري، عربي)</label>
+                <input type="text" id="apTagAr">
+              </div>
+              <div class="auth-field">
+                <label data-ar="وسم (اختياري، إنجليزي)" data-en="Tag (optional, English)">وسم (اختياري، إنجليزي)</label>
+                <input type="text" id="apTagEn">
+              </div>
+              <div class="auth-field admin-form-full">
+                <label data-ar="صورة المنتج" data-en="Product photo">صورة المنتج</label>
+                <input type="file" id="apImage" accept="image/*">
+                <div class="admin-image-preview" id="apImagePreview" hidden><img id="apImagePreviewImg" src="" alt=""></div>
+              </div>
+            </div>
+            <button class="btn btn-primary auth-submit" id="adminFormSubmit" type="submit" data-ar="حفظ" data-en="Save">حفظ</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
 </main>
 
 <footer>
@@ -1199,6 +1340,7 @@
           </div>
         </div>
         <div class="auth-account-actions">
+          <button class="btn btn-ghost" id="authAdminLink" type="button" hidden data-ar="لوحة التحكم" data-en="Admin panel">لوحة التحكم</button>
           <button class="btn btn-ghost" id="authLogoutBtn" type="button" data-ar="تسجيل الخروج" data-en="Log out">تسجيل الخروج</button>
         </div>
       </div>
@@ -1876,6 +2018,7 @@
     if(tryonBackdrop.classList.contains("open")) closeTryOn();
     else if(qvBackdrop.classList.contains("open")) closeQuickView();
     else if(document.getElementById("authBackdrop").classList.contains("open")) closeAuthModal();
+    else if(document.getElementById("adminFormBackdrop") && document.getElementById("adminFormBackdrop").classList.contains("open")) closeAdminForm();
   });
 
   /* ---------------- hero promo slider ---------------- */
@@ -2196,6 +2339,7 @@
 
   function parseRoute(){
     var h = location.hash || "";
+    if(h === "#/admin" || h.indexOf("#/admin") === 0) return { type:"admin" };
     var m = h.match(/^#\/product\/(\d+)/);
     if(m) return { type:"product", id: parseInt(m[1],10) };
     m = h.match(/^#\/shop\/([a-z]+)(?:\/([a-z]+))?(?:\/([a-z]+))?/);
@@ -2208,8 +2352,22 @@
     var shopSection = document.getElementById("shop");
     var productSection = document.getElementById("productPage");
     var shopBreadcrumb = document.getElementById("shopBreadcrumb");
+    var adminSection = document.getElementById("adminPage");
+    adminSection.hidden = true;
 
-    if(route.type === "product"){
+    if(route.type === "admin"){
+      if(typeof currentUserRole !== "undefined" && currentUserRole !== "admin"){
+        location.hash = "#/";
+        showToast(state.lang === "ar" ? "هذه الصفحة للأدمن فقط" : "This page is for admins only");
+        return;
+      }
+      setSectionsHidden(HOME_ONLY_SECTIONS, true);
+      shopSection.hidden = true;
+      productSection.hidden = true;
+      shopBreadcrumb.hidden = true;
+      adminSection.hidden = false;
+      if(typeof renderAdminPage === "function") renderAdminPage();
+    } else if(route.type === "product"){
       setSectionsHidden(HOME_ONLY_SECTIONS, true);
       shopSection.hidden = true;
       productSection.hidden = false;
@@ -2259,6 +2417,8 @@
   var authAccountName = document.getElementById("authAccountName");
   var authAccountEmail = document.getElementById("authAccountEmail");
   var authLogoutBtn = document.getElementById("authLogoutBtn");
+  var authAdminLink = document.getElementById("authAdminLink");
+  var currentUserRole = null;
 
   var AUTH_TEXT = {
     checkEmail: { ar:"تم إنشاء الحساب! افتح بريدك الإلكتروني واضغط على رابط التأكيد قبل تسجيل الدخول.", en:"Account created! Check your email and confirm it before logging in." },
@@ -2332,6 +2492,31 @@
       authFormsView.hidden = false;
       authAccountView.hidden = true;
     }
+    refreshUserRole(user);
+  }
+
+  function refreshUserRole(user){
+    if(!user || !supabaseClient){
+      currentUserRole = null;
+      if(authAdminLink) authAdminLink.hidden = true;
+      if(location.hash.indexOf("#/admin") === 0) location.hash = "#/";
+      return;
+    }
+    supabaseClient.from("profiles").select("role").eq("id", user.id).single().then(function(res){
+      currentUserRole = (res.data && res.data.role) || "customer";
+      if(authAdminLink) authAdminLink.hidden = currentUserRole !== "admin";
+      if(location.hash.indexOf("#/admin") === 0) handleRoute();
+    }).catch(function(){
+      currentUserRole = "customer";
+      if(authAdminLink) authAdminLink.hidden = true;
+    });
+  }
+
+  if(authAdminLink){
+    authAdminLink.addEventListener("click", function(){
+      closeAuthModal();
+      location.hash = "#/admin";
+    });
   }
 
   signupForm.addEventListener("submit", function(e){
@@ -2396,6 +2581,255 @@
     });
   } else {
     renderAuthUI(null);
+  }
+
+  /* ---------------- live product data (Supabase, falls back to the demo data above) ---------------- */
+  var productsLoaded = false;
+  function loadProducts(){
+    if(!supabaseClient) return;
+    supabaseClient
+      .from("products")
+      .select("id,name_ar,name_en,sub_ar,sub_en,category,shape,color_hex,price,tag_ar,tag_en,product_images(url,sort_order)")
+      .eq("is_active", true)
+      .order("id", { ascending:true })
+      .then(function(res){
+        if(res.error || !res.data || !res.data.length) return;
+        var newProducts = [];
+        var newImages = {};
+        res.data.forEach(function(row){
+          newProducts.push({
+            id: row.id,
+            cat: row.category,
+            price: row.price,
+            tag: row.tag_ar ? { ar: row.tag_ar, en: row.tag_en || row.tag_ar } : null,
+            name: { ar: row.name_ar, en: row.name_en || row.name_ar },
+            sub: { ar: row.sub_ar || "", en: row.sub_en || row.sub_ar || "" },
+            shape: row.shape,
+            color: row.color_hex || "var(--ink)"
+          });
+          var imgs = (row.product_images || []).slice().sort(function(a,b){ return (a.sort_order||0)-(b.sort_order||0); });
+          if(imgs.length) newImages[row.id] = imgs[0].url;
+        });
+        products = newProducts;
+        PRODUCT_IMAGES = newImages;
+        productsLoaded = true;
+        renderProducts();
+        renderCart();
+        if(typeof renderMegaMenus === "function") renderMegaMenus();
+        if(typeof handleRoute === "function") handleRoute();
+      })
+      .catch(function(){ /* offline or unreachable — keep showing the built-in demo catalog */ });
+  }
+  loadProducts();
+
+  /* ---------------- admin panel ---------------- */
+  var adminAddBtn = document.getElementById("adminAddBtn");
+  var adminTableBody = document.getElementById("adminTableBody");
+  var adminFormBackdrop = document.getElementById("adminFormBackdrop");
+  var adminFormClose = document.getElementById("adminFormClose");
+  var adminFormTitle = document.getElementById("adminFormTitle");
+  var adminProductForm = document.getElementById("adminProductForm");
+  var adminFormSubmit = document.getElementById("adminFormSubmit");
+  var apImageInput = document.getElementById("apImage");
+  var apImagePreview = document.getElementById("apImagePreview");
+  var apImagePreviewImg = document.getElementById("apImagePreviewImg");
+  var adminEditingId = null;
+
+  var ADMIN_CAT_LABELS = {
+    men: { ar:"رجالي طبي", en:"Men — Rx" },
+    women: { ar:"حريمي طبي", en:"Women — Rx" },
+    men_sun: { ar:"رجالي شمس", en:"Men — Sun" },
+    women_sun: { ar:"حريمي شمس", en:"Women — Sun" }
+  };
+  function adminCategoryLabel(cat){
+    return (ADMIN_CAT_LABELS[cat] && ADMIN_CAT_LABELS[cat][state.lang]) || cat;
+  }
+
+  function showAdminMsg(text, type){
+    var el = document.getElementById("adminMsg");
+    el.textContent = text;
+    el.className = "admin-msg show " + type;
+    clearTimeout(showAdminMsg._t);
+    showAdminMsg._t = setTimeout(function(){ el.className = "admin-msg"; }, 3200);
+  }
+  function showAdminFormMsg(text, type){
+    var el = document.getElementById("adminFormMsg");
+    el.textContent = text;
+    el.className = "auth-msg show " + type;
+  }
+  function clearAdminFormMsg(){
+    var el = document.getElementById("adminFormMsg");
+    el.className = "auth-msg";
+    el.textContent = "";
+  }
+
+  function renderAdminPage(){
+    if(!adminTableBody) return;
+    var loadingText = state.lang === "ar" ? "جارِ التحميل..." : "Loading...";
+    adminTableBody.innerHTML = '<tr><td colspan="5" class="admin-empty">'+loadingText+'</td></tr>';
+    if(!supabaseClient){
+      adminTableBody.innerHTML = '<tr><td colspan="5" class="admin-empty">'+authText("unavailable")+'</td></tr>';
+      return;
+    }
+    supabaseClient
+      .from("products")
+      .select("*,product_images(url,sort_order)")
+      .order("id", { ascending:true })
+      .then(function(res){
+        if(res.error){
+          adminTableBody.innerHTML = '<tr><td colspan="5" class="admin-empty">'+translateAuthError(res.error)+'</td></tr>';
+          return;
+        }
+        var rows = res.data || [];
+        if(!rows.length){
+          adminTableBody.innerHTML = '<tr><td colspan="5" class="admin-empty">'+(state.lang==="ar"?"لا توجد منتجات بعد":"No products yet")+'</td></tr>';
+          return;
+        }
+        adminTableBody.innerHTML = rows.map(function(row){
+          var imgs = (row.product_images||[]).slice().sort(function(a,b){ return (a.sort_order||0)-(b.sort_order||0); });
+          var photo = imgs.length ? imgs[0].url : "";
+          var name = state.lang === "ar" ? row.name_ar : (row.name_en || row.name_ar);
+          return '' +
+            '<tr>' +
+              '<td><div class="admin-thumb">'+(photo ? '<img src="'+photo+'" alt="">' : '')+'</div></td>' +
+              '<td>'+name+'</td>' +
+              '<td>'+adminCategoryLabel(row.category)+'</td>' +
+              '<td class="tabular">'+row.price+'</td>' +
+              '<td><div class="admin-row-actions">' +
+                '<button type="button" data-edit="'+row.id+'">'+(state.lang==="ar"?"تعديل":"Edit")+'</button>' +
+                '<button type="button" class="admin-delete" data-delete="'+row.id+'">'+(state.lang==="ar"?"حذف":"Delete")+'</button>' +
+              '</div></td>' +
+            '</tr>';
+        }).join("");
+        adminTableBody.querySelectorAll("[data-edit]").forEach(function(btn){
+          btn.addEventListener("click", function(){
+            var id = parseInt(btn.dataset.edit,10);
+            var row = rows.find(function(r){ return r.id === id; });
+            if(row) openAdminForm(row);
+          });
+        });
+        adminTableBody.querySelectorAll("[data-delete]").forEach(function(btn){
+          btn.addEventListener("click", function(){
+            deleteAdminProduct(parseInt(btn.dataset.delete,10));
+          });
+        });
+      })
+      .catch(function(){
+        adminTableBody.innerHTML = '<tr><td colspan="5" class="admin-empty">'+authText("networkError")+'</td></tr>';
+      });
+  }
+
+  function openAdminForm(row){
+    clearAdminFormMsg();
+    adminProductForm.reset();
+    apImagePreview.hidden = true;
+    if(row){
+      adminEditingId = row.id;
+      var imgs = (row.product_images||[]).slice().sort(function(a,b){ return (a.sort_order||0)-(b.sort_order||0); });
+      adminFormTitle.textContent = state.lang === "ar" ? "تعديل منتج" : "Edit product";
+      document.getElementById("apNameAr").value = row.name_ar || "";
+      document.getElementById("apNameEn").value = row.name_en || "";
+      document.getElementById("apSubAr").value = row.sub_ar || "";
+      document.getElementById("apSubEn").value = row.sub_en || "";
+      document.getElementById("apCategory").value = row.category || "men";
+      document.getElementById("apShape").value = row.shape || "aviator";
+      document.getElementById("apColor").value = row.color_hex || "#2b2b2b";
+      document.getElementById("apPrice").value = row.price || 0;
+      document.getElementById("apTagAr").value = row.tag_ar || "";
+      document.getElementById("apTagEn").value = row.tag_en || "";
+      if(imgs.length){
+        apImagePreviewImg.src = imgs[0].url;
+        apImagePreview.hidden = false;
+      }
+    } else {
+      adminEditingId = null;
+      adminFormTitle.textContent = state.lang === "ar" ? "إضافة منتج" : "Add product";
+      document.getElementById("apColor").value = "#2b2b2b";
+    }
+    adminFormBackdrop.classList.add("open");
+    document.body.style.overflow = "hidden";
+  }
+  function closeAdminForm(){
+    adminFormBackdrop.classList.remove("open");
+    document.body.style.overflow = "";
+  }
+
+  function deleteAdminProduct(id){
+    var ok = confirm(state.lang === "ar" ? "متأكد إنك عايز تحذف المنتج ده؟" : "Delete this product?");
+    if(!ok) return;
+    supabaseClient.from("products").delete().eq("id", id).then(function(res){
+      if(res.error){ showAdminMsg(translateAuthError(res.error), "error"); return; }
+      showAdminMsg(state.lang === "ar" ? "تم الحذف" : "Deleted", "success");
+      renderAdminPage();
+      loadProducts();
+    });
+  }
+
+  if(adminAddBtn){
+    adminAddBtn.addEventListener("click", function(){ openAdminForm(null); });
+    adminFormClose.addEventListener("click", closeAdminForm);
+    adminFormBackdrop.addEventListener("click", function(e){
+      if(e.target === adminFormBackdrop) closeAdminForm();
+    });
+    apImageInput.addEventListener("change", function(e){
+      var f = e.target.files[0];
+      if(!f) return;
+      var reader = new FileReader();
+      reader.onload = function(ev){
+        apImagePreviewImg.src = ev.target.result;
+        apImagePreview.hidden = false;
+      };
+      reader.readAsDataURL(f);
+    });
+
+    adminProductForm.addEventListener("submit", function(e){
+      e.preventDefault();
+      clearAdminFormMsg();
+      if(!supabaseClient){ showAdminFormMsg(authText("unavailable"), "error"); return; }
+      var payload = {
+        name_ar: document.getElementById("apNameAr").value.trim(),
+        name_en: document.getElementById("apNameEn").value.trim(),
+        sub_ar: document.getElementById("apSubAr").value.trim(),
+        sub_en: document.getElementById("apSubEn").value.trim(),
+        category: document.getElementById("apCategory").value,
+        shape: document.getElementById("apShape").value,
+        color_hex: document.getElementById("apColor").value.trim() || "#2b2b2b",
+        price: parseFloat(document.getElementById("apPrice").value) || 0,
+        tag_ar: document.getElementById("apTagAr").value.trim() || null,
+        tag_en: document.getElementById("apTagEn").value.trim() || null
+      };
+      adminFormSubmit.disabled = true;
+
+      var savePromise = adminEditingId
+        ? supabaseClient.from("products").update(payload).eq("id", adminEditingId).select().single()
+        : supabaseClient.from("products").insert(payload).select().single();
+
+      savePromise.then(function(res){
+        if(res.error) throw res.error;
+        var productId = res.data.id;
+        var file = apImageInput.files[0];
+        if(file){
+          var path = Date.now() + "_" + file.name.replace(/[^a-zA-Z0-9.]/g, "_");
+          return supabaseClient.storage.from("product-images").upload(path, file).then(function(upRes){
+            if(upRes.error) throw upRes.error;
+            var pub = supabaseClient.storage.from("product-images").getPublicUrl(path);
+            var url = pub.data.publicUrl;
+            return supabaseClient.from("product_images").delete().eq("product_id", productId).eq("sort_order", 0).then(function(){
+              return supabaseClient.from("product_images").insert({ product_id: productId, url: url, sort_order: 0 });
+            });
+          });
+        }
+      }).then(function(){
+        adminFormSubmit.disabled = false;
+        closeAdminForm();
+        showAdminMsg(state.lang === "ar" ? "تم الحفظ بنجاح" : "Saved successfully", "success");
+        renderAdminPage();
+        loadProducts();
+      }).catch(function(err){
+        adminFormSubmit.disabled = false;
+        showAdminFormMsg(translateAuthError(err), "error");
+      });
+    });
   }
 
   applyLang();
