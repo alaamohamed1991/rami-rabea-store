@@ -210,6 +210,7 @@
     border:1px solid transparent; text-decoration:none; transition:transform .15s, box-shadow .15s, background .15s;
     white-space:nowrap;
   }
+  .btn[hidden]{ display:none; }
   .btn:active{ transform:scale(.97); }
   .btn-primary{ background:var(--accent); color:var(--accent-ink); box-shadow:var(--shadow); }
   .btn-primary:hover{ box-shadow:0 22px 40px -20px color-mix(in srgb, var(--accent) 60%, transparent); }
@@ -341,6 +342,7 @@
   /* ---------- shop ---------- */
   .shop-head{ display:flex; flex-wrap:wrap; justify-content:space-between; align-items:end; gap:1.5rem; margin-block-end:2.2rem; }
   .filters{ display:flex; gap:.6rem; flex-wrap:wrap; }
+  .filters[hidden]{ display:none; }
   .filter-btn{
     border:1px solid var(--line); background:var(--surface); color:var(--ink-soft);
     padding:.55rem 1.15rem; border-radius:999px; font-size:.85rem; font-weight:700;
@@ -570,6 +572,7 @@
     display:flex; align-items:center; gap:.5rem; flex-wrap:wrap;
     padding-block:1.3rem; font-size:.82rem; color:var(--ink-faint);
   }
+  .page-breadcrumb[hidden]{ display:none; }
   .page-breadcrumb a{ color:var(--ink-faint); transition:color .15s; }
   .page-breadcrumb a:hover{ color:var(--ink); }
   .page-breadcrumb #shopBreadcrumbCurrent,
@@ -692,11 +695,13 @@
     position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
     gap:1rem; text-align:center; padding:1.5rem; background:#14170f; color:var(--brand-cream); z-index:2;
   }
+  .tryon-gate[hidden]{ display:none; }
   .tryon-gate p{ font-size:.82rem; color:color-mix(in srgb, var(--brand-cream) 75%, transparent); max-width:32ch; }
   .tryon-error{
     position:absolute; inset:0; display:flex; align-items:center; justify-content:center; text-align:center;
     padding:1.5rem; background:#14170f; color:var(--brand-cream); font-size:.85rem; z-index:3;
   }
+  .tryon-error[hidden]{ display:none; }
   .tryon-glasses-wrap{
     position:absolute; inset-block-start:50%; inset-inline-start:50%; width:52%; z-index:1;
     cursor:grab; touch-action:none; filter:drop-shadow(0 6px 14px rgba(0,0,0,.35));
@@ -704,6 +709,7 @@
   .tryon-glasses-wrap:active{ cursor:grabbing; }
   .tryon-glasses-wrap img{ width:100%; height:auto; display:block; pointer-events:none; user-select:none; }
   .tryon-controls{ display:flex; flex-direction:column; gap:.7rem; margin-block-start:1.1rem; }
+  .tryon-controls[hidden]{ display:none; }
   .tryon-row{ display:flex; align-items:center; gap:.7rem; }
   .tryon-row label{ font-size:.78rem; color:var(--ink-faint); min-width:4.2rem; }
   .tryon-row input[type="range"]{ flex:1; accent-color:var(--accent); }
