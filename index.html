@@ -1317,9 +1317,10 @@
       </div>
       <div class="tryon-row" id="tryonRotateRow">
         <label data-ar="الدوران" data-en="Rotate">الدوران</label>
-        <input type="range" id="tryonRotate" min="-30" max="30" value="0">
+        <input type="range" id="tryonRotate" min="-180" max="180" value="0">
       </div>
       <button class="btn btn-ghost btn-sm" id="tryonReset" type="button" data-ar="إعادة الضبط" data-en="Reset position">إعادة الضبط</button>
+      <button class="btn btn-ghost btn-sm" id="tryonModeToggle" type="button"></button>
     </div>
     <p class="tryon-note" data-ar="يعمل عرض الكاميرا محليًا داخل متصفحك فقط، ولا يتم حفظ أو رفع أي صورة أو فيديو." data-en="The camera preview runs locally in your browser only — nothing is saved or uploaded.">يعمل عرض الكاميرا محليًا داخل متصفحك فقط، ولا يتم حفظ أو رفع أي صورة أو فيديو.</p>
   </div>
@@ -1938,6 +1939,7 @@
   var tryonCaptureBtn = document.getElementById("tryonCaptureBtn");
   var tryonCaptureActions = document.getElementById("tryonCaptureActions");
   var tryonCaptureNote = document.getElementById("tryonCaptureNote");
+  var tryonModeToggle = document.getElementById("tryonModeToggle");
   var tryonCaptured = false;
   var tryonCapturing = false;
   var tryonAutoRotateOffset = 0;
@@ -2265,6 +2267,8 @@
     tryonCaptureBtn.disabled = false;
     tryonCaptureActions.hidden = true;
     tryonCaptureNote.hidden = true;
+    tryonModeToggle.hidden = false;
+    tryonModeToggle.textContent = state.lang === "ar" ? "تحكم يدوي بالماوس" : "Control it with your mouse";
     tryonNoFaceSince = Date.now();
 
     function frame(){
@@ -2405,6 +2409,15 @@
     tryonCaptureActions.hidden = true;
     tryonCaptureNote.hidden = true;
     resetTF();
+    /* Only offer a way back to auto-tracking if it actually loaded — if the
+       face-tracking library never loaded at all, there's nothing to switch
+       back to. */
+    if(tryonFaceLandmarker){
+      tryonModeToggle.hidden = false;
+      tryonModeToggle.textContent = state.lang === "ar" ? "رجوع للتتبع التلقائي" : "Back to auto-tracking";
+    } else {
+      tryonModeToggle.hidden = true;
+    }
     if(showNotice){
       showToast(state.lang === "ar"
         ? "التتبع التلقائي مش متاح دلوقتي — اسحب النظارة بإصبعك لتظبطها"
@@ -2424,6 +2437,7 @@
     tryonCaptureBtn.hidden = true;
     tryonCaptureActions.hidden = true;
     tryonCaptureNote.hidden = true;
+    tryonModeToggle.hidden = true;
     tryonVideo.classList.remove("tryon-video-covered");
     resetTF();
     getCutout(p.id).then(function(url){
@@ -2446,6 +2460,7 @@
     tryonCaptureBtn.hidden = true;
     tryonCaptureActions.hidden = true;
     tryonCaptureNote.hidden = true;
+    tryonModeToggle.hidden = true;
     if(tryonCtx) tryonCtx.clearRect(0, 0, tryonCanvas.width, tryonCanvas.height);
     if(tryonStream){
       tryonStream.getTracks().forEach(function(tr){ tr.stop(); });
@@ -2517,6 +2532,13 @@
   tryonCaptureBtn.addEventListener("click", captureTryOnPhoto);
   document.getElementById("tryonRetake").addEventListener("click", retakeTryOnPhoto);
   document.getElementById("tryonSavePhoto").addEventListener("click", saveTryOnPhoto);
+  tryonModeToggle.addEventListener("click", function(){
+    if(tryonTrackingMode === "auto"){
+      startManualFallback(false);
+    } else if(tryonTrackingMode === "manual" && tryonFaceLandmarker){
+      startAutoTracking();
+    }
+  });
   tryonBackdrop.addEventListener("click", function(e){
     if(e.target === tryonBackdrop) closeTryOn();
   });
