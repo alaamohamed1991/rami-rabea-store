@@ -691,6 +691,15 @@
   .tryon-stage video{
     position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transform:scaleX(-1);
   }
+  .tryon-stage video.tryon-video-covered{ visibility:hidden; }
+  #tryonCanvas{ position:absolute; inset:0; width:100%; height:100%; z-index:1; }
+  #tryonCanvas[hidden]{ display:none; }
+  .tryon-tracking-hint{
+    position:absolute; inset-inline:0; inset-block-end:.8rem; text-align:center; z-index:4;
+    font-size:.78rem; color:var(--brand-cream); background:rgba(0,0,0,.5);
+    margin-inline:1rem; padding:.45rem .9rem; border-radius:999px; pointer-events:none;
+  }
+  .tryon-tracking-hint[hidden]{ display:none; }
   .tryon-gate{
     position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
     gap:1rem; text-align:center; padding:1.5rem; background:#14170f; color:var(--brand-cream); z-index:2;
@@ -1264,22 +1273,24 @@
     <h3 id="tryonTitle" data-ar="جرّب النظارة بالكاميرا" data-en="Try it on with your camera">جرّب النظارة بالكاميرا</h3>
     <div class="tryon-stage" id="tryonStage">
       <video id="tryonVideo" autoplay playsinline muted></video>
+      <canvas id="tryonCanvas" hidden></canvas>
       <div class="tryon-glasses-wrap" id="tryonGlassesWrap" hidden>
         <img id="tryonGlassesImg" src="" alt="">
       </div>
       <div class="tryon-gate" id="tryonGate">
         <svg width="34" height="34" viewBox="0 0 24 24" fill="none"><path d="M4 8a2 2 0 0 1 2-2h2l1.2-1.6A2 2 0 0 1 10.8 3.6l.4-.1h1.6l.4.1a2 2 0 0 1 1.6.8L16 6h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8Z" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12.5" r="3.4" stroke="currentColor" stroke-width="1.6"/></svg>
-        <p data-ar="فعّل الكاميرا لتجربة شكل النظارة على وشك مباشرة. اسحب النظارة لتثبيتها فوق عينيك بعد التشغيل." data-en="Turn on your camera to see how the glasses look on your face. After it starts, drag the glasses to line them up over your eyes.">فعّل الكاميرا لتجربة شكل النظارة على وشك مباشرة. اسحب النظارة لتثبيتها فوق عينيك بعد التشغيل.</p>
+        <p data-ar="فعّل الكاميرا وهنتتبع وشك تلقائيًا لنظبطلك مكان النظارة، زي فلاتر السناب تمامًا." data-en="Turn on your camera and we'll track your face automatically to place the glasses, just like a Snapchat filter.">فعّل الكاميرا وهنتتبع وشك تلقائيًا لنظبطلك مكان النظارة، زي فلاتر السناب تمامًا.</p>
         <button class="btn btn-primary btn-sm" id="tryonStart" type="button" data-ar="تشغيل الكاميرا" data-en="Turn on camera">تشغيل الكاميرا</button>
       </div>
       <div class="tryon-error" id="tryonError" hidden></div>
+      <div class="tryon-tracking-hint" id="tryonTrackingHint" hidden></div>
     </div>
     <div class="tryon-controls" id="tryonControls" hidden>
-      <div class="tryon-row">
-        <label data-ar="الحجم" data-en="Size">الحجم</label>
+      <div class="tryon-row" id="tryonSizeRow">
+        <label data-ar="حجم النظارة" data-en="Glasses size">حجم النظارة</label>
         <input type="range" id="tryonSize" min="30" max="90" value="52">
       </div>
-      <div class="tryon-row">
+      <div class="tryon-row" id="tryonRotateRow">
         <label data-ar="الدوران" data-en="Rotate">الدوران</label>
         <input type="range" id="tryonRotate" min="-30" max="30" value="0">
       </div>
@@ -1888,9 +1899,13 @@
   /* ---------------- virtual try-on ---------------- */
   var tryonBackdrop = document.getElementById("tryonBackdrop");
   var tryonVideo = document.getElementById("tryonVideo");
+  var tryonCanvas = document.getElementById("tryonCanvas");
+  var tryonCtx = tryonCanvas.getContext("2d");
   var tryonGate = document.getElementById("tryonGate");
   var tryonError = document.getElementById("tryonError");
   var tryonControls = document.getElementById("tryonControls");
+  var tryonRotateRow = document.getElementById("tryonRotateRow");
+  var tryonTrackingHint = document.getElementById("tryonTrackingHint");
   var tryonWrap = document.getElementById("tryonGlassesWrap");
   var tryonImg = document.getElementById("tryonGlassesImg");
   var tryonSizeInput = document.getElementById("tryonSize");
@@ -1898,6 +1913,13 @@
   var tryonStream = null;
   var cutoutCache = {};
   var tf = { x:0, y:-6, rotate:0 };
+  var tryonTrackingMode = null;
+  var tryonRafId = null;
+  var tryonFaceLandmarker = null;
+  var tryonFaceLandmarkerPromise = null;
+  var tryonNoFaceSince = null;
+  var FACE_LM_CDN_BASE = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
+  var FACE_LM_MODEL_URL = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task";
 
   function getCutout(id){
     return new Promise(function(resolve){
@@ -1945,11 +1967,139 @@
     applyTF();
   }
 
+  function loadFaceLandmarker(){
+    if(tryonFaceLandmarkerPromise) return tryonFaceLandmarkerPromise;
+    tryonFaceLandmarkerPromise = import(FACE_LM_CDN_BASE + "/vision_bundle.mjs")
+      .then(function(vision){
+        return vision.FilesetResolver.forVisionTasks(FACE_LM_CDN_BASE + "/wasm").then(function(fileset){
+          return vision.FaceLandmarker.createFromOptions(fileset, {
+            baseOptions: { modelAssetPath: FACE_LM_MODEL_URL, delegate: "GPU" },
+            runningMode: "VIDEO",
+            numFaces: 1
+          });
+        });
+      })
+      .then(function(landmarker){
+        tryonFaceLandmarker = landmarker;
+        return landmarker;
+      })
+      .catch(function(err){
+        tryonFaceLandmarkerPromise = null;
+        throw err;
+      });
+    return tryonFaceLandmarkerPromise;
+  }
+
+  function mapMirroredPoint(nx, ny, dispW, dispH, offX, offY){
+    var mx = 1 - nx;
+    return { x: mx*dispW - offX, y: ny*dispH - offY };
+  }
+
+  function stopTrackingLoop(){
+    if(tryonRafId){ cancelAnimationFrame(tryonRafId); tryonRafId = null; }
+  }
+
+  function startAutoTracking(){
+    tryonTrackingMode = "auto";
+    tryonVideo.classList.add("tryon-video-covered");
+    tryonCanvas.hidden = false;
+    tryonWrap.hidden = true;
+    tryonRotateRow.hidden = true;
+    tryonControls.hidden = false;
+    tryonTrackingHint.hidden = true;
+    tryonNoFaceSince = Date.now();
+
+    function frame(){
+      if(!tryonStream) return;
+      var vw = tryonVideo.videoWidth, vh = tryonVideo.videoHeight;
+      if(vw && vh){
+        var dpr = window.devicePixelRatio || 1;
+        var cw = tryonCanvas.clientWidth, ch = tryonCanvas.clientHeight;
+        var pw = Math.max(1, Math.round(cw*dpr)), ph = Math.max(1, Math.round(ch*dpr));
+        if(tryonCanvas.width !== pw || tryonCanvas.height !== ph){
+          tryonCanvas.width = pw; tryonCanvas.height = ph;
+        }
+        tryonCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        tryonCtx.clearRect(0, 0, cw, ch);
+
+        var scale = Math.max(cw/vw, ch/vh);
+        var dispW = vw*scale, dispH = vh*scale;
+        var offX = (dispW-cw)/2, offY = (dispH-ch)/2;
+
+        tryonCtx.save();
+        tryonCtx.translate(cw, 0);
+        tryonCtx.scale(-1, 1);
+        tryonCtx.drawImage(tryonVideo, -offX, -offY, dispW, dispH);
+        tryonCtx.restore();
+
+        var faceFound = false;
+        if(tryonFaceLandmarker && tryonVideo.readyState >= 2){
+          try{
+            var result = tryonFaceLandmarker.detectForVideo(tryonVideo, performance.now());
+            if(result && result.faceLandmarks && result.faceLandmarks.length){
+              faceFound = true;
+              tryonNoFaceSince = null;
+              tryonTrackingHint.hidden = true;
+              var lm = result.faceLandmarks[0];
+              var leftEye = mapMirroredPoint(lm[33].x, lm[33].y, dispW, dispH, offX, offY);
+              var rightEye = mapMirroredPoint(lm[263].x, lm[263].y, dispW, dispH, offX, offY);
+              var dx = rightEye.x - leftEye.x, dy = rightEye.y - leftEye.y;
+              var eyeDist = Math.sqrt(dx*dx + dy*dy);
+              var angle = Math.atan2(dy, dx);
+              var centerX = (leftEye.x + rightEye.x) / 2;
+              var centerY = (leftEye.y + rightEye.y) / 2;
+              var userMult = (parseFloat(tryonSizeInput.value) || 52) / 52;
+              var glassesW = eyeDist * 1.7 * userMult;
+              if(tryonImg.naturalWidth){
+                var glassesH = glassesW * (tryonImg.naturalHeight / tryonImg.naturalWidth);
+                tryonCtx.save();
+                tryonCtx.translate(centerX, centerY + glassesW*0.05);
+                tryonCtx.rotate(angle);
+                tryonCtx.drawImage(tryonImg, -glassesW/2, -glassesH/2, glassesW, glassesH);
+                tryonCtx.restore();
+              }
+            }
+          }catch(e){ /* one bad frame — keep going */ }
+        }
+        if(!faceFound){
+          if(tryonNoFaceSince === null) tryonNoFaceSince = Date.now();
+          if(Date.now() - tryonNoFaceSince > 1800){
+            tryonTrackingHint.textContent = state.lang === "ar"
+              ? "مش لاقيين وشك — قرّب من الكاميرا وخلي الإضاءة كويسة"
+              : "Can't find your face — move closer and check the lighting";
+            tryonTrackingHint.hidden = false;
+          }
+        }
+      }
+      tryonRafId = requestAnimationFrame(frame);
+    }
+    tryonRafId = requestAnimationFrame(frame);
+  }
+
+  function startManualFallback(showNotice){
+    tryonTrackingMode = "manual";
+    tryonVideo.classList.remove("tryon-video-covered");
+    tryonCanvas.hidden = true;
+    tryonRotateRow.hidden = false;
+    tryonControls.hidden = false;
+    tryonTrackingHint.hidden = true;
+    tryonWrap.hidden = false;
+    resetTF();
+    if(showNotice){
+      showToast(state.lang === "ar"
+        ? "التتبع التلقائي مش متاح دلوقتي — اسحب النظارة بإصبعك لتظبطها"
+        : "Auto-tracking isn't available right now — drag the glasses to position them");
+    }
+  }
+
   function openTryOn(p){
     tryonError.hidden = true;
     tryonControls.hidden = true;
     tryonGate.hidden = false;
     tryonWrap.hidden = true;
+    tryonCanvas.hidden = true;
+    tryonTrackingHint.hidden = true;
+    tryonVideo.classList.remove("tryon-video-covered");
     resetTF();
     getCutout(p.id).then(function(url){
       tryonImg.src = url || PRODUCT_IMAGES[p.id] || "";
@@ -1964,6 +2114,9 @@
     stopCamera();
   }
   function stopCamera(){
+    stopTrackingLoop();
+    tryonTrackingMode = null;
+    if(tryonCtx) tryonCtx.clearRect(0, 0, tryonCanvas.width, tryonCanvas.height);
     if(tryonStream){
       tryonStream.getTracks().forEach(function(tr){ tr.stop(); });
       tryonStream = null;
@@ -1999,9 +2152,26 @@
       tryonVideo.srcObject = stream;
       tryonGate.hidden = true;
       tryonError.hidden = true;
-      tryonWrap.hidden = false;
-      tryonControls.hidden = false;
-      applyTF();
+      tryonTrackingHint.textContent = state.lang === "ar" ? "بنجهز التتبع التلقائي للوش..." : "Preparing automatic face tracking...";
+      tryonTrackingHint.hidden = false;
+
+      var landmarkerSettled = false;
+      var landmarkerTimeout = setTimeout(function(){
+        if(landmarkerSettled) return;
+        landmarkerSettled = true;
+        startManualFallback(true);
+      }, 12000);
+      loadFaceLandmarker().then(function(){
+        if(landmarkerSettled || !tryonStream) return;
+        landmarkerSettled = true;
+        clearTimeout(landmarkerTimeout);
+        startAutoTracking();
+      }).catch(function(){
+        if(landmarkerSettled) return;
+        landmarkerSettled = true;
+        clearTimeout(landmarkerTimeout);
+        startManualFallback(true);
+      });
     }).catch(function(){
       if(settled) return;
       settled = true;
@@ -2017,8 +2187,16 @@
   tryonBackdrop.addEventListener("click", function(e){
     if(e.target === tryonBackdrop) closeTryOn();
   });
-  document.getElementById("tryonReset").addEventListener("click", resetTF);
-  tryonSizeInput.addEventListener("input", applyTF);
+  document.getElementById("tryonReset").addEventListener("click", function(){
+    if(tryonTrackingMode === "auto"){
+      tryonSizeInput.value = 52;
+    } else {
+      resetTF();
+    }
+  });
+  tryonSizeInput.addEventListener("input", function(){
+    if(tryonTrackingMode !== "auto") applyTF();
+  });
   tryonRotateInput.addEventListener("input", function(){
     tf.rotate = parseFloat(tryonRotateInput.value);
     applyTF();
