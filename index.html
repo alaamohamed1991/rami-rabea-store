@@ -2161,7 +2161,7 @@
     var eyeScreenRight = mapMirroredPoint(lm[33].x,  lm[33].y,  fit.dispW, fit.dispH, fit.offX, fit.offY);
     var dx = eyeScreenRight.x - eyeScreenLeft.x, dy = eyeScreenRight.y - eyeScreenLeft.y;
     var eyeDist = Math.sqrt(dx*dx + dy*dy);
-    var angle = Math.atan2(dy, dx);
+    var eyeAngle = Math.atan2(dy, dx);
     var centerX = (eyeScreenLeft.x + eyeScreenRight.x) / 2;
     var centerY = (eyeScreenLeft.y + eyeScreenRight.y) / 2;
 
@@ -2169,6 +2169,18 @@
     var cheekScreenRight = mapMirroredPoint(lm[234].x, lm[234].y, fit.dispW, fit.dispH, fit.offX, fit.offY);
     var fdx = cheekScreenRight.x - cheekScreenLeft.x, fdy = cheekScreenRight.y - cheekScreenLeft.y;
     var faceWidth = Math.sqrt(fdx*fdx + fdy*fdy);
+    var cheekAngle = Math.atan2(fdy, fdx);
+    /* A tilt estimated from only two points (the eyes) is fully at the
+       mercy of however accurate those exact two points were on that one
+       frame — a single point landing half a pixel off rotates the whole
+       image. Blending in the same measurement taken from the two cheek
+       points (which should describe roughly the same head roll) averages
+       out independent noise in either pair and gives a steadier, more
+       reliable angle — this is what was making one lens sit visibly higher
+       than the other. It can't fully correct for a head that's genuinely
+       turned rather than tilted, since that needs real 3D perspective, not
+       just a 2D rotation. */
+    var angle = (eyeAngle + cheekAngle) / 2;
     var baseW = faceWidth > eyeDist ? faceWidth * 0.88 : eyeDist * 1.55;
     var userMult = (parseFloat(tryonSizeInput.value) || 52) / 52;
     var glassesW = baseW * userMult;
