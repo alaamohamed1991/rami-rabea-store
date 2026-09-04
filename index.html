@@ -723,6 +723,22 @@
   .tryon-row label{ font-size:.78rem; color:var(--ink-faint); min-width:4.2rem; }
   .tryon-row input[type="range"]{ flex:1; accent-color:var(--accent); }
   .tryon-note{ font-size:.72rem; color:var(--ink-faint); margin-block-start:.7rem; text-align:center; }
+  .tryon-capture-btn{
+    position:absolute; inset-inline-start:50%; inset-block-end:1rem; transform:translateX(-50%);
+    width:3.4rem; height:3.4rem; border-radius:50%; z-index:4;
+    display:flex; align-items:center; justify-content:center;
+    background:#fff; color:#14170f; border:3px solid rgba(255,255,255,.55);
+    box-shadow:0 4px 14px rgba(0,0,0,.35); cursor:pointer;
+  }
+  .tryon-capture-btn[hidden]{ display:none; }
+  .tryon-capture-btn:disabled{ opacity:.6; cursor:default; }
+  .tryon-capture-actions{
+    position:absolute; inset-inline:0; inset-block-end:1rem; z-index:4;
+    display:flex; gap:.6rem; justify-content:center; padding-inline:1rem;
+  }
+  .tryon-capture-actions[hidden]{ display:none; }
+  .tryon-capture-note{ font-size:.72rem; color:var(--ink-faint); margin-block-start:.7rem; text-align:center; }
+  .tryon-capture-note[hidden]{ display:none; }
 
   /* ---------- brands slider ---------- */
   .brands{ padding-block:clamp(3rem,6vw,5rem); border-block:1px solid var(--line); background:var(--surface); }
@@ -1284,7 +1300,15 @@
       </div>
       <div class="tryon-error" id="tryonError" hidden></div>
       <div class="tryon-tracking-hint" id="tryonTrackingHint" hidden></div>
+      <button class="tryon-capture-btn" id="tryonCaptureBtn" type="button" aria-label="Capture photo" hidden>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 8a2 2 0 0 1 2-2h2l1.2-1.6A2 2 0 0 1 10.8 3.6l.4-.1h1.6l.4.1a2 2 0 0 1 1.6.8L16 6h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8Z" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12.5" r="3.4" stroke="currentColor" stroke-width="1.6"/></svg>
+      </button>
+      <div class="tryon-capture-actions" id="tryonCaptureActions" hidden>
+        <button class="btn btn-ghost btn-sm" id="tryonRetake" type="button" data-ar="التقط تاني" data-en="Retake">التقط تاني</button>
+        <button class="btn btn-primary btn-sm" id="tryonSavePhoto" type="button" data-ar="احفظ الصورة" data-en="Save photo">احفظ الصورة</button>
+      </div>
     </div>
+    <p class="tryon-capture-note" id="tryonCaptureNote" hidden data-ar="بندمج كذا لقطة سريعة عشان نلتقط أدق وضع للوش، بعدها تقدر تحفظ الصورة." data-en="We blend a few quick frames to get the most accurate face position, then you can save the photo.">بندمج كذا لقطة سريعة عشان نلتقط أدق وضع للوش، بعدها تقدر تحفظ الصورة.</p>
     <div class="tryon-controls" id="tryonControls" hidden>
       <div class="tryon-row" id="tryonSizeRow">
         <label data-ar="حجم النظارة" data-en="Glasses size">حجم النظارة</label>
@@ -1910,6 +1934,11 @@
   var tryonImg = document.getElementById("tryonGlassesImg");
   var tryonSizeInput = document.getElementById("tryonSize");
   var tryonRotateInput = document.getElementById("tryonRotate");
+  var tryonCaptureBtn = document.getElementById("tryonCaptureBtn");
+  var tryonCaptureActions = document.getElementById("tryonCaptureActions");
+  var tryonCaptureNote = document.getElementById("tryonCaptureNote");
+  var tryonCaptured = false;
+  var tryonCapturing = false;
   var tryonStream = null;
   var cutoutCache = {};
   var tf = { x:0, y:-6, rotate:0 };
@@ -2050,6 +2079,72 @@
     if(tryonRafId){ cancelAnimationFrame(tryonRafId); tryonRafId = null; }
   }
 
+  /* Shared by the live tracking loop and the still-photo capture below, so
+     both draw the video frame and the glasses the exact same way. */
+  function computeCoverFit(){
+    var vw = tryonVideo.videoWidth, vh = tryonVideo.videoHeight;
+    if(!vw || !vh) return null;
+    var dpr = window.devicePixelRatio || 1;
+    var cw = tryonCanvas.clientWidth, ch = tryonCanvas.clientHeight;
+    var pw = Math.max(1, Math.round(cw*dpr)), ph = Math.max(1, Math.round(ch*dpr));
+    if(tryonCanvas.width !== pw || tryonCanvas.height !== ph){
+      tryonCanvas.width = pw; tryonCanvas.height = ph;
+    }
+    tryonCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var scale = Math.max(cw/vw, ch/vh);
+    var dispW = vw*scale, dispH = vh*scale;
+    return { cw:cw, ch:ch, dispW:dispW, dispH:dispH, offX:(dispW-cw)/2, offY:(dispH-ch)/2 };
+  }
+
+  function drawMirroredVideoFrame(fit){
+    tryonCtx.clearRect(0, 0, fit.cw, fit.ch);
+    tryonCtx.save();
+    tryonCtx.translate(fit.cw, 0);
+    tryonCtx.scale(-1, 1);
+    tryonCtx.drawImage(tryonVideo, -fit.offX, -fit.offY, fit.dispW, fit.dispH);
+    tryonCtx.restore();
+    tryonCtx.imageSmoothingEnabled = true;
+    tryonCtx.imageSmoothingQuality = "high";
+  }
+
+  /* Landmark 33 is the subject's RIGHT eye (outer corner), landmark 263 is
+     the subject's LEFT eye; 234/454 are the right/left cheek edges (same
+     right-then-left convention). The video is drawn mirrored (selfie view)
+     above, so on screen the subject's own left eye sits on the screen's
+     left side and the right eye on the screen's right side — same as
+     looking in a real mirror. Building the eye-line vector from
+     screen-left to screen-right (instead of the raw landmark order)
+     matters a lot: getting it backwards points the vector the opposite
+     way and rotates the glasses image 180°, i.e. upside down.
+     Sizing off the face width (cheek to cheek) instead of just the eye
+     distance makes the default size track the face shape — the eye
+     distance barely changes between a narrow and a wide face, so it made
+     the size slider feel like the only thing that mattered. */
+  function drawGlassesForLandmarks(lm, fit){
+    var eyeScreenLeft  = mapMirroredPoint(lm[263].x, lm[263].y, fit.dispW, fit.dispH, fit.offX, fit.offY);
+    var eyeScreenRight = mapMirroredPoint(lm[33].x,  lm[33].y,  fit.dispW, fit.dispH, fit.offX, fit.offY);
+    var dx = eyeScreenRight.x - eyeScreenLeft.x, dy = eyeScreenRight.y - eyeScreenLeft.y;
+    var eyeDist = Math.sqrt(dx*dx + dy*dy);
+    var angle = Math.atan2(dy, dx);
+    var centerX = (eyeScreenLeft.x + eyeScreenRight.x) / 2;
+    var centerY = (eyeScreenLeft.y + eyeScreenRight.y) / 2;
+
+    var cheekScreenLeft  = mapMirroredPoint(lm[454].x, lm[454].y, fit.dispW, fit.dispH, fit.offX, fit.offY);
+    var cheekScreenRight = mapMirroredPoint(lm[234].x, lm[234].y, fit.dispW, fit.dispH, fit.offX, fit.offY);
+    var fdx = cheekScreenRight.x - cheekScreenLeft.x, fdy = cheekScreenRight.y - cheekScreenLeft.y;
+    var faceWidth = Math.sqrt(fdx*fdx + fdy*fdy);
+    var baseW = faceWidth > eyeDist ? faceWidth * 0.88 : eyeDist * 1.55;
+    var userMult = (parseFloat(tryonSizeInput.value) || 52) / 52;
+    var glassesW = baseW * userMult;
+    if(!tryonImg.naturalWidth) return;
+    var glassesH = glassesW * (tryonImg.naturalHeight / tryonImg.naturalWidth);
+    tryonCtx.save();
+    tryonCtx.translate(centerX, centerY + glassesW*0.02);
+    tryonCtx.rotate(angle);
+    tryonCtx.drawImage(tryonImg, -glassesW/2, -glassesH/2, glassesW, glassesH);
+    tryonCtx.restore();
+  }
+
   function startAutoTracking(){
     tryonTrackingMode = "auto";
     tryonVideo.classList.add("tryon-video-covered");
@@ -2058,32 +2153,19 @@
     tryonRotateRow.hidden = true;
     tryonControls.hidden = false;
     tryonTrackingHint.hidden = true;
+    tryonCaptured = false;
+    tryonCapturing = false;
+    tryonCaptureBtn.hidden = false;
+    tryonCaptureBtn.disabled = false;
+    tryonCaptureActions.hidden = true;
+    tryonCaptureNote.hidden = true;
     tryonNoFaceSince = Date.now();
 
     function frame(){
       if(!tryonStream) return;
-      var vw = tryonVideo.videoWidth, vh = tryonVideo.videoHeight;
-      if(vw && vh){
-        var dpr = window.devicePixelRatio || 1;
-        var cw = tryonCanvas.clientWidth, ch = tryonCanvas.clientHeight;
-        var pw = Math.max(1, Math.round(cw*dpr)), ph = Math.max(1, Math.round(ch*dpr));
-        if(tryonCanvas.width !== pw || tryonCanvas.height !== ph){
-          tryonCanvas.width = pw; tryonCanvas.height = ph;
-        }
-        tryonCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        tryonCtx.clearRect(0, 0, cw, ch);
-
-        var scale = Math.max(cw/vw, ch/vh);
-        var dispW = vw*scale, dispH = vh*scale;
-        var offX = (dispW-cw)/2, offY = (dispH-ch)/2;
-
-        tryonCtx.save();
-        tryonCtx.translate(cw, 0);
-        tryonCtx.scale(-1, 1);
-        tryonCtx.drawImage(tryonVideo, -offX, -offY, dispW, dispH);
-        tryonCtx.restore();
-        tryonCtx.imageSmoothingEnabled = true;
-        tryonCtx.imageSmoothingQuality = "high";
+      var fit = computeCoverFit();
+      if(fit){
+        drawMirroredVideoFrame(fit);
 
         var faceFound = false;
         if(tryonFaceLandmarker && tryonVideo.readyState >= 2){
@@ -2093,50 +2175,7 @@
               faceFound = true;
               tryonNoFaceSince = null;
               tryonTrackingHint.hidden = true;
-              var lm = result.faceLandmarks[0];
-              /* Landmark 33 is the subject's RIGHT eye (outer corner), landmark
-                 263 is the subject's LEFT eye. The video is drawn mirrored
-                 (selfie view) above, so on screen the subject's own left eye
-                 sits on the screen's left side and the right eye on the
-                 screen's right side — same as looking in a real mirror.
-                 Building the eye-line vector from screen-left to screen-right
-                 (instead of the raw landmark order) matters a lot: getting it
-                 backwards points the vector the opposite way and rotates the
-                 glasses image 180°, i.e. upside down, which is what was
-                 happening before. */
-              var eyeScreenLeft  = mapMirroredPoint(lm[263].x, lm[263].y, dispW, dispH, offX, offY);
-              var eyeScreenRight = mapMirroredPoint(lm[33].x,  lm[33].y,  dispW, dispH, offX, offY);
-              var dx = eyeScreenRight.x - eyeScreenLeft.x, dy = eyeScreenRight.y - eyeScreenLeft.y;
-              var eyeDist = Math.sqrt(dx*dx + dy*dy);
-              var angle = Math.atan2(dy, dx);
-              var centerX = (eyeScreenLeft.x + eyeScreenRight.x) / 2;
-              var centerY = (eyeScreenLeft.y + eyeScreenRight.y) / 2;
-
-              /* Landmarks 234/454 are the right/left cheek edges (same
-                 right-then-left convention as the eye landmarks above) and
-                 track how wide the face actually is. Sizing off the eye
-                 distance alone ties the glasses to the gap between the pupils,
-                 which barely changes between a narrow and a wide face — so the
-                 slider ended up being the only thing that visibly changed the
-                 size, and it never looked "fitted". Basing the width on the
-                 face itself makes the default size track the face shape, and
-                 the slider becomes a fine-tune on top of that instead of the
-                 whole story. */
-              var cheekScreenLeft  = mapMirroredPoint(lm[454].x, lm[454].y, dispW, dispH, offX, offY);
-              var cheekScreenRight = mapMirroredPoint(lm[234].x, lm[234].y, dispW, dispH, offX, offY);
-              var fdx = cheekScreenRight.x - cheekScreenLeft.x, fdy = cheekScreenRight.y - cheekScreenLeft.y;
-              var faceWidth = Math.sqrt(fdx*fdx + fdy*fdy);
-              var baseW = faceWidth > eyeDist ? faceWidth * 0.88 : eyeDist * 1.55;
-              var userMult = (parseFloat(tryonSizeInput.value) || 52) / 52;
-              var glassesW = baseW * userMult;
-              if(tryonImg.naturalWidth){
-                var glassesH = glassesW * (tryonImg.naturalHeight / tryonImg.naturalWidth);
-                tryonCtx.save();
-                tryonCtx.translate(centerX, centerY + glassesW*0.02);
-                tryonCtx.rotate(angle);
-                tryonCtx.drawImage(tryonImg, -glassesW/2, -glassesH/2, glassesW, glassesH);
-                tryonCtx.restore();
-              }
+              drawGlassesForLandmarks(result.faceLandmarks[0], fit);
             }
           }catch(e){ /* one bad frame — keep going */ }
         }
@@ -2155,6 +2194,97 @@
     tryonRafId = requestAnimationFrame(frame);
   }
 
+  /* "Capture photo" takes several quick readings instead of trusting a
+     single video frame, then freezes on the averaged result. Live tracking
+     has to keep up with ~30 frames a second, so each individual reading is
+     a little noisy; a frozen photo doesn't have that constraint, so
+     smoothing several readings together gives a noticeably steadier,
+     better-aligned result to save or screenshot — closer to how a
+     photo-based try-on (capture once, render carefully) looks compared to
+     a live camera filter. */
+  function averageLandmarks(list){
+    var count = list.length, n = list[0].length, out = new Array(n);
+    for(var i=0; i<n; i++){
+      var sx=0, sy=0;
+      for(var j=0; j<count; j++){ sx += list[j][i].x; sy += list[j][i].y; }
+      out[i] = { x: sx/count, y: sy/count };
+    }
+    return out;
+  }
+
+  function captureTryOnPhoto(){
+    if(tryonTrackingMode !== "auto" || !tryonFaceLandmarker || tryonCapturing || tryonCaptured || !tryonStream) return;
+    tryonCapturing = true;
+    tryonCaptureBtn.disabled = true;
+    var samples = [];
+    var attempts = 0;
+    function sampleOnce(){
+      if(!tryonStream){ tryonCapturing = false; return; }
+      attempts++;
+      try{
+        var result = tryonFaceLandmarker.detectForVideo(tryonVideo, performance.now());
+        if(result && result.faceLandmarks && result.faceLandmarks.length){
+          samples.push(result.faceLandmarks[0]);
+        }
+      }catch(e){ /* skip this sample */ }
+      if(samples.length < 8 && attempts < 24){
+        requestAnimationFrame(sampleOnce);
+      } else {
+        finishCapture(samples);
+      }
+    }
+    requestAnimationFrame(sampleOnce);
+  }
+
+  function finishCapture(samples){
+    tryonCapturing = false;
+    tryonCaptureBtn.disabled = false;
+    if(!tryonStream) return;
+    if(!samples.length){
+      showToast(state.lang === "ar"
+        ? "مقدرناش نلتقط صورة واضحة — ثبّت وشك قصاد الكاميرا وجرب تاني"
+        : "Couldn't get a clear shot — hold still facing the camera and try again");
+      return;
+    }
+    var fit = computeCoverFit();
+    if(!fit) return;
+    stopTrackingLoop();
+    var lm = averageLandmarks(samples);
+    drawMirroredVideoFrame(fit);
+    drawGlassesForLandmarks(lm, fit);
+    tryonCaptured = true;
+    tryonCaptureBtn.hidden = true;
+    tryonCaptureActions.hidden = false;
+    tryonCaptureNote.hidden = false;
+    tryonTrackingHint.hidden = true;
+    tryonControls.hidden = true;
+  }
+
+  function retakeTryOnPhoto(){
+    tryonCaptured = false;
+    tryonCaptureActions.hidden = true;
+    tryonCaptureNote.hidden = true;
+    if(tryonStream && tryonFaceLandmarker){
+      startAutoTracking();
+    }
+  }
+
+  function saveTryOnPhoto(){
+    try{
+      var url = tryonCanvas.toDataURL("image/png");
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = "try-on.png";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }catch(e){
+      showToast(state.lang === "ar"
+        ? "معرفناش نحفظ الصورة من هنا — جرب تاخد لقطة شاشة بدل كده"
+        : "Couldn't save the photo from here — try taking a screenshot instead");
+    }
+  }
+
   function startManualFallback(showNotice){
     tryonTrackingMode = "manual";
     tryonVideo.classList.remove("tryon-video-covered");
@@ -2163,6 +2293,11 @@
     tryonControls.hidden = false;
     tryonTrackingHint.hidden = true;
     tryonWrap.hidden = false;
+    tryonCaptured = false;
+    tryonCapturing = false;
+    tryonCaptureBtn.hidden = true;
+    tryonCaptureActions.hidden = true;
+    tryonCaptureNote.hidden = true;
     resetTF();
     if(showNotice){
       showToast(state.lang === "ar"
@@ -2178,6 +2313,11 @@
     tryonWrap.hidden = true;
     tryonCanvas.hidden = true;
     tryonTrackingHint.hidden = true;
+    tryonCaptured = false;
+    tryonCapturing = false;
+    tryonCaptureBtn.hidden = true;
+    tryonCaptureActions.hidden = true;
+    tryonCaptureNote.hidden = true;
     tryonVideo.classList.remove("tryon-video-covered");
     resetTF();
     getCutout(p.id).then(function(url){
@@ -2195,6 +2335,11 @@
   function stopCamera(){
     stopTrackingLoop();
     tryonTrackingMode = null;
+    tryonCaptured = false;
+    tryonCapturing = false;
+    tryonCaptureBtn.hidden = true;
+    tryonCaptureActions.hidden = true;
+    tryonCaptureNote.hidden = true;
     if(tryonCtx) tryonCtx.clearRect(0, 0, tryonCanvas.width, tryonCanvas.height);
     if(tryonStream){
       tryonStream.getTracks().forEach(function(tr){ tr.stop(); });
@@ -2263,6 +2408,9 @@
 
   document.getElementById("tryonStart").addEventListener("click", startCamera);
   document.getElementById("tryonClose").addEventListener("click", closeTryOn);
+  tryonCaptureBtn.addEventListener("click", captureTryOnPhoto);
+  document.getElementById("tryonRetake").addEventListener("click", retakeTryOnPhoto);
+  document.getElementById("tryonSavePhoto").addEventListener("click", saveTryOnPhoto);
   tryonBackdrop.addEventListener("click", function(e){
     if(e.target === tryonBackdrop) closeTryOn();
   });
