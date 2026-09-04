@@ -2026,7 +2026,42 @@
             }
           }
           ctx.putImageData(frame, 0, 0);
-          var url = c.toDataURL("image/png");
+
+          /* Crop to the visible (non-transparent) bounding box. The debug
+             overlay showed the eye/cheek tracking landing exactly on the
+             right spots on the face — the bug was here: product photos
+             aren't framed with the glasses perfectly centered in the shot,
+             so the cutout (still the full original photo canvas, just with
+             the background erased) usually has more blank space on one
+             side — often more below the frame than above it. The overlay
+             code centers the *image* on the eyes, so any lopsided padding
+             like that drags the *visible frame* off-center with it — in
+             this case up and away from the eyes. Cropping to the tight
+             bounding box of the actual glasses pixels makes the image's
+             center and the frame's visual center the same point, and also
+             makes the width/height ratio used for sizing reflect the real
+             glasses shape instead of the padded photo. */
+          var minX=w, minY=h, maxX=-1, maxY=-1;
+          for(var by=0; by<h; by++){
+            for(var bx=0; bx<w; bx++){
+              if(d[(by*w+bx)*4+3] > 10){
+                if(bx<minX) minX=bx;
+                if(bx>maxX) maxX=bx;
+                if(by<minY) minY=by;
+                if(by>maxY) maxY=by;
+              }
+            }
+          }
+          var url;
+          if(maxX >= minX && maxY >= minY){
+            var cropW = maxX-minX+1, cropH = maxY-minY+1;
+            var c2 = document.createElement("canvas");
+            c2.width = cropW; c2.height = cropH;
+            c2.getContext("2d").drawImage(c, minX, minY, cropW, cropH, 0, 0, cropW, cropH);
+            url = c2.toDataURL("image/png");
+          } else {
+            url = c.toDataURL("image/png");
+          }
           cutoutCache[id] = url;
           resolve(url);
         }catch(e){ resolve(src); }
