@@ -1952,6 +1952,7 @@
             var maxc = Math.max(r,g,b), minc = Math.min(r,g,b);
             return r>222 && g>222 && b>222 && (maxc-minc)<18;
           };
+          var bg = new Uint8Array(n);
           var qx = new Int32Array(n), qy = new Int32Array(n);
           var qt = 0;
           function seed(x,y){
@@ -1959,15 +1960,40 @@
             var idx = y*w+x;
             if(visited[idx]) return;
             visited[idx] = 1;
-            if(isBgColor(idx)){ qx[qt]=x; qy[qt]=y; qt++; }
+            if(isBgColor(idx)){ bg[idx]=1; qx[qt]=x; qy[qt]=y; qt++; }
           }
           for(var x=0; x<w; x++){ seed(x,0); seed(x,h-1); }
           for(var y=0; y<h; y++){ seed(0,y); seed(w-1,y); }
           var qh = 0;
           while(qh<qt){
             var cx=qx[qh], cy=qy[qh]; qh++;
-            d[(cy*w+cx)*4+3] = 0;
             seed(cx-1,cy); seed(cx+1,cy); seed(cx,cy-1); seed(cx,cy+1);
+          }
+          /* A hard 0/255 cutout leaves a jagged, aliased edge that looks
+             rough once the image is blown up several times over for the
+             camera overlay. A single 3x3 average pass on the alpha channel
+             (computed from the bg mask, not written back until the end)
+             feathers that edge by about a pixel so it reads as a clean cut
+             instead of a staircase. */
+          var alpha = new Uint8ClampedArray(n);
+          for(var i=0;i<n;i++){ alpha[i] = bg[i] ? 0 : 255; }
+          for(var y2=0; y2<h; y2++){
+            for(var x2=0; x2<w; x2++){
+              var idx2 = y2*w+x2;
+              if(alpha[idx2] === 0){ d[idx2*4+3] = 0; continue; }
+              var onEdge = (x2>0 && alpha[idx2-1]===0) || (x2<w-1 && alpha[idx2+1]===0) ||
+                           (y2>0 && alpha[idx2-w]===0) || (y2<h-1 && alpha[idx2+w]===0);
+              if(!onEdge) continue;
+              var sum=0, cnt=0;
+              for(var oy=-1; oy<=1; oy++){
+                var yy=y2+oy; if(yy<0||yy>=h) continue;
+                for(var ox=-1; ox<=1; ox++){
+                  var xx=x2+ox; if(xx<0||xx>=w) continue;
+                  sum += alpha[yy*w+xx]; cnt++;
+                }
+              }
+              d[idx2*4+3] = Math.round(sum/cnt);
+            }
           }
           ctx.putImageData(frame, 0, 0);
           var url = c.toDataURL("image/png");
@@ -2100,13 +2126,13 @@
               var cheekScreenRight = mapMirroredPoint(lm[234].x, lm[234].y, dispW, dispH, offX, offY);
               var fdx = cheekScreenRight.x - cheekScreenLeft.x, fdy = cheekScreenRight.y - cheekScreenLeft.y;
               var faceWidth = Math.sqrt(fdx*fdx + fdy*fdy);
-              var baseW = faceWidth > eyeDist ? faceWidth * 0.98 : eyeDist * 1.7;
+              var baseW = faceWidth > eyeDist ? faceWidth * 0.88 : eyeDist * 1.55;
               var userMult = (parseFloat(tryonSizeInput.value) || 52) / 52;
               var glassesW = baseW * userMult;
               if(tryonImg.naturalWidth){
                 var glassesH = glassesW * (tryonImg.naturalHeight / tryonImg.naturalWidth);
                 tryonCtx.save();
-                tryonCtx.translate(centerX, centerY + glassesW*0.05);
+                tryonCtx.translate(centerX, centerY + glassesW*0.02);
                 tryonCtx.rotate(angle);
                 tryonCtx.drawImage(tryonImg, -glassesW/2, -glassesH/2, glassesW, glassesH);
                 tryonCtx.restore();
