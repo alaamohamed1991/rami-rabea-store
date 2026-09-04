@@ -1939,6 +1939,7 @@
   var tryonCaptureNote = document.getElementById("tryonCaptureNote");
   var tryonCaptured = false;
   var tryonCapturing = false;
+  var tryonDebug = /(?:^|[?&])tryonDebug=1(?:&|$)/.test(location.search);
   var tryonStream = null;
   var cutoutCache = {};
   var tf = { x:0, y:-6, rotate:0 };
@@ -2136,6 +2137,38 @@
     var baseW = faceWidth > eyeDist ? faceWidth * 0.88 : eyeDist * 1.55;
     var userMult = (parseFloat(tryonSizeInput.value) || 52) / 52;
     var glassesW = baseW * userMult;
+
+    /* Debug overlay — enabled by adding ?tryonDebug=1 to the page URL.
+       Draws the exact points the math is using (eye corners in red, cheek
+       edges in blue, the computed center in yellow) plus a text readout, so
+       a bad result can be diagnosed as either "the dots are on the wrong
+       part of the face" (a face-detection accuracy problem — lighting,
+       angle, browser/GPU support) or "the dots are right but the glasses
+       aren't" (a drawing-math problem) instead of guessing. */
+    if(tryonDebug){
+      tryonCtx.save();
+      function dot(pt, color){
+        tryonCtx.beginPath();
+        tryonCtx.arc(pt.x, pt.y, 4, 0, Math.PI*2);
+        tryonCtx.fillStyle = color;
+        tryonCtx.fill();
+      }
+      dot(eyeScreenLeft, "#ff2d55");
+      dot(eyeScreenRight, "#ff2d55");
+      dot(cheekScreenLeft, "#2d7bff");
+      dot(cheekScreenRight, "#2d7bff");
+      dot({x:centerX, y:centerY}, "#ffd60a");
+      tryonCtx.font = "12px monospace";
+      tryonCtx.fillStyle = "#ffd60a";
+      tryonCtx.textAlign = "left";
+      tryonCtx.fillText(
+        "eyeDist=" + eyeDist.toFixed(0) + " faceWidth=" + faceWidth.toFixed(0) +
+        " glassesW=" + glassesW.toFixed(0) + " branch=" + (faceWidth > eyeDist ? "face" : "eye"),
+        8, 16
+      );
+      tryonCtx.restore();
+    }
+
     if(!tryonImg.naturalWidth) return;
     var glassesH = glassesW * (tryonImg.naturalHeight / tryonImg.naturalWidth);
     tryonCtx.save();
