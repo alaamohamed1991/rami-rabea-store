@@ -1319,6 +1319,10 @@
         <label data-ar="الدوران" data-en="Rotate">الدوران</label>
         <input type="range" id="tryonRotate" min="-180" max="180" value="0">
       </div>
+      <div class="tryon-row" id="tryonYawRow">
+        <label data-ar="يمين / شمال" data-en="Turn left/right">يمين / شمال</label>
+        <input type="range" id="tryonYaw" min="-75" max="75" value="0">
+      </div>
       <button class="btn btn-ghost btn-sm" id="tryonReset" type="button" data-ar="إعادة الضبط" data-en="Reset position">إعادة الضبط</button>
       <button class="btn btn-ghost btn-sm" id="tryonModeToggle" type="button"></button>
     </div>
@@ -1936,6 +1940,8 @@
   var tryonImg = document.getElementById("tryonGlassesImg");
   var tryonSizeInput = document.getElementById("tryonSize");
   var tryonRotateInput = document.getElementById("tryonRotate");
+  var tryonYawInput = document.getElementById("tryonYaw");
+  var tryonYawDeg = 0;
   var tryonCaptureBtn = document.getElementById("tryonCaptureBtn");
   var tryonCaptureActions = document.getElementById("tryonCaptureActions");
   var tryonCaptureNote = document.getElementById("tryonCaptureNote");
@@ -2096,13 +2102,23 @@
 
   function applyTF(){
     tryonWrap.style.width = tryonSizeInput.value + "%";
+    /* scaleX after rotate() squishes the glasses horizontally along their
+       OWN tilted axis (not the screen's), which reads as the frame turning
+       away from the camera — a simple, honest approximation of a left/right
+       turn using only the one flat front-view product photo we have. It's
+       not a true 3D rotation (no real depth or occlusion of the far
+       temple), but it gives a recognizable turning cue without needing a
+       3D model of every product. */
+    var yawScale = Math.cos(tryonYawDeg * Math.PI / 180);
     tryonWrap.style.transform =
-      "translate(-50%,-50%) translate("+tf.x+"px,"+tf.y+"px) rotate("+tf.rotate+"deg)";
+      "translate(-50%,-50%) translate("+tf.x+"px,"+tf.y+"px) rotate("+tf.rotate+"deg) scaleX("+yawScale+")";
   }
   function resetTF(){
     tf.x = 0; tf.y = -6; tf.rotate = 0;
+    tryonYawDeg = 0;
     tryonSizeInput.value = 52;
     tryonRotateInput.value = 0;
+    tryonYawInput.value = 0;
     applyTF();
   }
 
@@ -2244,6 +2260,9 @@
     tryonCtx.save();
     tryonCtx.translate(centerX, centerY + glassesW*0.02);
     tryonCtx.rotate(angle);
+    /* Same left/right "turn" approximation as the manual mode — squish the
+       glasses horizontally along their own (already-rotated) axis. */
+    tryonCtx.scale(Math.cos(tryonYawDeg * Math.PI / 180), 1);
     tryonCtx.drawImage(tryonImg, -glassesW/2, -glassesH/2, glassesW, glassesH);
     tryonCtx.restore();
   }
@@ -2259,6 +2278,8 @@
     tryonRotateRow.hidden = false;
     tryonAutoRotateOffset = 0;
     tryonRotateInput.value = 0;
+    tryonYawDeg = 0;
+    tryonYawInput.value = 0;
     tryonControls.hidden = false;
     tryonTrackingHint.hidden = true;
     tryonCaptured = false;
@@ -2547,6 +2568,8 @@
       tryonSizeInput.value = 52;
       tryonAutoRotateOffset = 0;
       tryonRotateInput.value = 0;
+      tryonYawDeg = 0;
+      tryonYawInput.value = 0;
     } else {
       resetTF();
     }
@@ -2561,6 +2584,10 @@
       tf.rotate = parseFloat(tryonRotateInput.value);
       applyTF();
     }
+  });
+  tryonYawInput.addEventListener("input", function(){
+    tryonYawDeg = parseFloat(tryonYawInput.value) || 0;
+    if(tryonTrackingMode !== "auto") applyTF();
   });
 
   var dragging = false, dragStartX = 0, dragStartY = 0, origX = 0, origY = 0;
