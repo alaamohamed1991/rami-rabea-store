@@ -720,6 +720,7 @@
   .tryon-controls{ display:flex; flex-direction:column; gap:.7rem; margin-block-start:1.1rem; }
   .tryon-controls[hidden]{ display:none; }
   .tryon-row{ display:flex; align-items:center; gap:.7rem; }
+  .tryon-row[hidden]{ display:none; }
   .tryon-row label{ font-size:.78rem; color:var(--ink-faint); min-width:4.2rem; }
   .tryon-row input[type="range"]{ flex:1; accent-color:var(--accent); }
   .tryon-note{ font-size:.72rem; color:var(--ink-faint); margin-block-start:.7rem; text-align:center; }
@@ -1939,6 +1940,7 @@
   var tryonCaptureNote = document.getElementById("tryonCaptureNote");
   var tryonCaptured = false;
   var tryonCapturing = false;
+  var tryonAutoRotateOffset = 0;
   var tryonDebug = /(?:^|[?&])tryonDebug=1(?:&|$)/.test(location.search);
   var tryonStream = null;
   var cutoutCache = {};
@@ -1967,14 +1969,17 @@
           var frame = ctx.getImageData(0, 0, w, h);
           var d = frame.data;
           var n = w*h;
-          /* Flood-fill the background starting from the image border instead of
-             thresholding every pixel in the photo. Thresholding every near-white
-             pixel also erased light-colored frames/lenses in the middle of the
-             glasses (thin metal rims, light lens tints), which is what made the
-             cutout look like a bare wireframe once it was blown up for the
-             camera overlay. Flood-filling from the edges only erases background
-             that's actually connected to the border, so light pixels that are
-             surrounded by the glasses themselves stay solid. */
+          /* Find every connected near-white region in the photo (not just the
+             background) and erase the ones that are either connected to the
+             image border (the actual background) OR big enough to be a lens
+             — clear/white-looking lenses in a flat product photo are large
+             near-white blobs enclosed by the frame, and customers expect to
+             see their own eyes through the lens in the camera overlay, not
+             an opaque white disc. A small enclosed near-white region stays
+             solid, since that's normally just a highlight/reflection on the
+             frame material, not a lens — erasing every near-white pixel
+             unconditionally (the very first version of this) is what made
+             thin metal rims disappear and look like a bare wireframe. */
           var visited = new Uint8Array(n);
           var isBgColor = function(idx){
             var o = idx*4;
@@ -1984,20 +1989,36 @@
           };
           var bg = new Uint8Array(n);
           var qx = new Int32Array(n), qy = new Int32Array(n);
-          var qt = 0;
-          function seed(x,y){
-            if(x<0||x>=w||y<0||y>=h) return;
-            var idx = y*w+x;
-            if(visited[idx]) return;
-            visited[idx] = 1;
-            if(isBgColor(idx)){ bg[idx]=1; qx[qt]=x; qy[qt]=y; qt++; }
-          }
-          for(var x=0; x<w; x++){ seed(x,0); seed(x,h-1); }
-          for(var y=0; y<h; y++){ seed(0,y); seed(w-1,y); }
-          var qh = 0;
-          while(qh<qt){
-            var cx=qx[qh], cy=qy[qh]; qh++;
-            seed(cx-1,cy); seed(cx+1,cy); seed(cx,cy-1); seed(cx,cy+1);
+          var minBlobSize = Math.max(24, Math.round(n * 0.0025));
+          for(var sy=0; sy<h; sy++){
+            for(var sx=0; sx<w; sx++){
+              var sidx = sy*w+sx;
+              if(visited[sidx]) continue;
+              visited[sidx] = 1;
+              if(!isBgColor(sidx)) continue;
+              var qt=0, qh=0;
+              qx[qt]=sx; qy[qt]=sy; qt++;
+              var members = [sidx];
+              var touchesBorder = (sx===0||sx===w-1||sy===0||sy===h-1);
+              while(qh<qt){
+                var cx=qx[qh], cy=qy[qh]; qh++;
+                var neigh = [[cx-1,cy],[cx+1,cy],[cx,cy-1],[cx,cy+1]];
+                for(var k=0;k<4;k++){
+                  var nx=neigh[k][0], ny=neigh[k][1];
+                  if(nx<0||nx>=w||ny<0||ny>=h) continue;
+                  var nidx = ny*w+nx;
+                  if(visited[nidx]) continue;
+                  visited[nidx] = 1;
+                  if(!isBgColor(nidx)) continue;
+                  if(nx===0||nx===w-1||ny===0||ny===h-1) touchesBorder = true;
+                  members.push(nidx);
+                  qx[qt]=nx; qy[qt]=ny; qt++;
+                }
+              }
+              if(touchesBorder || members.length >= minBlobSize){
+                for(var mi=0; mi<members.length; mi++) bg[members[mi]] = 1;
+              }
+            }
           }
           /* A hard 0/255 cutout leaves a jagged, aliased edge that looks
              rough once the image is blown up several times over for the
@@ -2180,7 +2201,7 @@
        than the other. It can't fully correct for a head that's genuinely
        turned rather than tilted, since that needs real 3D perspective, not
        just a 2D rotation. */
-    var angle = (eyeAngle + cheekAngle) / 2;
+    var angle = (eyeAngle + cheekAngle) / 2 + (tryonAutoRotateOffset * Math.PI / 180);
     var baseW = faceWidth > eyeDist ? faceWidth * 0.88 : eyeDist * 1.55;
     var userMult = (parseFloat(tryonSizeInput.value) || 52) / 52;
     var glassesW = baseW * userMult;
@@ -2230,7 +2251,12 @@
     tryonVideo.classList.add("tryon-video-covered");
     tryonCanvas.hidden = false;
     tryonWrap.hidden = true;
-    tryonRotateRow.hidden = true;
+    /* The rotate slider IS useful in auto mode — it nudges the
+       automatically-tracked angle, for the cases where the automatic tilt
+       estimate is close but not perfect. Keep it visible here. */
+    tryonRotateRow.hidden = false;
+    tryonAutoRotateOffset = 0;
+    tryonRotateInput.value = 0;
     tryonControls.hidden = false;
     tryonTrackingHint.hidden = true;
     tryonCaptured = false;
@@ -2497,6 +2523,8 @@
   document.getElementById("tryonReset").addEventListener("click", function(){
     if(tryonTrackingMode === "auto"){
       tryonSizeInput.value = 52;
+      tryonAutoRotateOffset = 0;
+      tryonRotateInput.value = 0;
     } else {
       resetTF();
     }
@@ -2505,8 +2533,12 @@
     if(tryonTrackingMode !== "auto") applyTF();
   });
   tryonRotateInput.addEventListener("input", function(){
-    tf.rotate = parseFloat(tryonRotateInput.value);
-    applyTF();
+    if(tryonTrackingMode === "auto"){
+      tryonAutoRotateOffset = parseFloat(tryonRotateInput.value) || 0;
+    } else {
+      tf.rotate = parseFloat(tryonRotateInput.value);
+      applyTF();
+    }
   });
 
   var dragging = false, dragStartX = 0, dragStartY = 0, origX = 0, origY = 0;
