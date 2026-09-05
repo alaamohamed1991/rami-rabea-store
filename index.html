@@ -249,11 +249,12 @@
     background:linear-gradient(to left, rgba(20,23,15,.8) 0%, rgba(20,23,15,.55) 34%, rgba(20,23,15,.2) 60%, rgba(20,23,15,0) 80%);
   }
   [dir="ltr"] .hero-slide{ justify-content:flex-end; }
-  .hero-slide-sale .eyebrow, .hero-slide-lens .eyebrow{ color:var(--amber); }
-  .hero-slide-sale .eyebrow::before, .hero-slide-lens .eyebrow::before{ background:var(--amber); }
-  .hero-slide-sale h1, .hero-slide-lens h1{ color:var(--brand-cream); }
-  .hero-slide-sale .lede, .hero-slide-lens .lede{ color:color-mix(in srgb, var(--brand-cream) 78%, transparent); }
-  .hero-slide-sale .btn-primary, .hero-slide-lens .btn-primary{ background:var(--amber); color:var(--amber-ink); border-color:var(--amber); }
+  .hero-slide-sale .eyebrow, .hero-slide-lens .eyebrow, .hero-slide-contacts .eyebrow{ color:var(--amber); }
+  .hero-slide-sale .eyebrow::before, .hero-slide-lens .eyebrow::before, .hero-slide-contacts .eyebrow::before{ background:var(--amber); }
+  .hero-slide-sale h1, .hero-slide-lens h1, .hero-slide-contacts h1{ color:var(--brand-cream); }
+  .hero-slide-sale .lede, .hero-slide-lens .lede, .hero-slide-contacts .lede{ color:color-mix(in srgb, var(--brand-cream) 78%, transparent); }
+  .hero-slide-sale .btn-primary, .hero-slide-lens .btn-primary, .hero-slide-contacts .btn-primary{ background:var(--amber); color:var(--amber-ink); border-color:var(--amber); }
+  .hero-slide-contacts .hero-slide-bg{ background:var(--brand-dark); }
 
   .hero-slide-copy{ position:relative; z-index:2; padding-block:3rem; pointer-events:none; }
   .hero-slide-copy .inner{ max-width:30rem; pointer-events:auto; }
@@ -897,6 +898,24 @@
           </div>
         </div>
       </div>
+      <div class="hero-slide hero-slide-contacts" data-slide-index="2">
+        <div class="hero-slide-bg" aria-hidden="true">
+          <img class="hero-slide-photo" src="https://images.pexels.com/photos/5842839/pexels-photo-5842839.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1920&amp;h=1000&amp;fit=crop" alt="" loading="eager">
+          <div class="hero-slide-scrim"></div>
+        </div>
+        <span class="hero-slide-wordmark" data-ar="رامي ربيع" data-en="Rami Rabea">رامي ربيع</span>
+        <div class="hero-slide-badge"><img id="heroLogoBadge2" src="" alt="Rami Rabea"></div>
+        <div class="wrap hero-slide-copy">
+          <div class="inner">
+            <span class="eyebrow" data-ar="لفترة محدودة" data-en="Limited time">لفترة محدودة</span>
+            <h1 data-ar="خصم يصل إلى 30% على العدسات اللاصقة" data-en="Up to 30% off contact lenses">خصم يصل إلى 30% على العدسات اللاصقة</h1>
+            <p class="lede" data-ar="تشكيلة عدسات لاصقة طبية ويومية، بتوصيل سريع لكل محافظات مصر." data-en="Daily and prescription contact lenses, delivered fast across Egypt.">تشكيلة عدسات لاصقة طبية ويومية، بتوصيل سريع لكل محافظات مصر.</p>
+            <div class="hero-ctas">
+              <a href="#shop" class="btn btn-primary" data-ar="تسوّقوا الآن" data-en="Shop now">تسوّقوا الآن</a>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
     <button class="hero-arrow hero-arrow-prev" id="heroPrev" type="button" data-ar-label="السابق" data-en-label="Previous" aria-label="Previous">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -907,6 +926,7 @@
     <div class="hero-dots" id="heroDots" role="tablist" aria-label="Promotions">
       <button class="hero-dot active" type="button" data-goto="0" aria-label="1"></button>
       <button class="hero-dot" type="button" data-goto="1" aria-label="2"></button>
+      <button class="hero-dot" type="button" data-goto="2" aria-label="3"></button>
     </div>
   </section>
 
@@ -3058,10 +3078,12 @@
     var lensImg = document.getElementById("heroImgLens");
     var badge0 = document.getElementById("heroLogoBadge0");
     var badge1 = document.getElementById("heroLogoBadge1");
+    var badge2 = document.getElementById("heroLogoBadge2");
     if(saleImg) saleImg.src = HERO_IMG_SALE;
     if(lensImg) lensImg.src = HERO_IMG_LENS;
     if(badge0) badge0.src = HERO_LOGO_MARK;
     if(badge1) badge1.src = HERO_LOGO_MARK;
+    if(badge2) badge2.src = HERO_LOGO_MARK;
 
     var slides = Array.prototype.slice.call(document.querySelectorAll(".hero-slide"));
     var dots = Array.prototype.slice.call(document.querySelectorAll(".hero-dot"));
