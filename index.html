@@ -2023,10 +2023,21 @@
             var center = box.getCenter(new THREE.Vector3());
             /* Recenter so the model's own visual middle sits at its local
                origin — the on-screen position we compute from face
-               landmarks below assumes that, and raw exported models rarely
-               happen to be centered on their own. */
-            scene.position.sub(center);
-            var entry = { scene: scene, width: size.x || 1 };
+               landmarks below assumes that. Important: offset a fresh
+               WRAPPER group, not scene.position itself. Exported glTF roots
+               very often carry their own baked rotation (a common Z-up to
+               Y-up conversion from the authoring tool), and subtracting a
+               world-space center from a rotated node's own .position does
+               NOT recenter the rendered geometry in world space — it only
+               looks right when the node's rotation/scale happen to be
+               identity. A brand-new outer group has no rotation of its own,
+               so translating IT by -center is always a true world-space
+               shift regardless of whatever the loaded model's internal
+               transforms are. */
+            var wrapper = new THREE.Group();
+            wrapper.add(scene);
+            wrapper.position.copy(center).multiplyScalar(-1);
+            var entry = { scene: wrapper, width: size.x || 1 };
             tryon3DModelCache[shape] = entry;
             resolve(entry);
           }catch(e){ reject(e); }
@@ -2104,11 +2115,25 @@
 
   function setupGlasses3DInstance(){
     if(!tryon3DMods || !tryon3DReadyShape) return;
+    var THREE = tryon3DMods.THREE;
     var entry = tryon3DModelCache[tryon3DReadyShape];
     if(!entry) return;
     ensureThreeSetup(tryonCanvas.width || 1, tryonCanvas.height || 1);
     if(tryon3DGroup) tryonThreeScene.remove(tryon3DGroup);
-    tryon3DGroup = entry.scene.clone(true);
+    /* entry.scene already carries a fixed "-center" offset baked into its
+       own position (set once, at load time, so its visual middle sits at
+       its local origin). That has to stay untouched — cloning it directly
+       into tryon3DGroup and then calling tryon3DGroup.position.set(...)
+       every frame in updateGlasses3D would REPLACE that offset instead of
+       adding to it, throwing the recentering away and rendering the model
+       at whatever off-center position it originally shipped with (exactly
+       the "glasses render to the side of the tracked point" bug). Keeping
+       the recentered clone as a CHILD of a fresh, separate outer group, and
+       only ever moving/scaling/rotating that outer group each frame, keeps
+       both offsets independent. */
+    var inner = entry.scene.clone(true);
+    tryon3DGroup = new THREE.Group();
+    tryon3DGroup.add(inner);
     tryon3DGroup.userData.nativeWidth = entry.width;
     tryonThreeScene.add(tryon3DGroup);
   }
