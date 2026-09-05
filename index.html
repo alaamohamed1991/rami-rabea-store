@@ -1985,6 +1985,7 @@
   var tryon3DReadyShape = null;
   var tryon3DStatus = "idle";
   var tryon3DErrorMsg = "";
+  var tryon3DDebugBox = "";
   var tryonCurrentShape = null;
   var tryon3DActive = false;
   var tryonThreeRenderer = null, tryonThreeScene = null, tryonThreeCamera = null;
@@ -2037,7 +2038,12 @@
             var wrapper = new THREE.Group();
             wrapper.add(scene);
             wrapper.position.copy(center).multiplyScalar(-1);
-            var entry = { scene: wrapper, width: size.x || 1 };
+            var entry = {
+              scene: wrapper, width: size.x || 1,
+              debugBox: "min=(" + box.min.x.toFixed(2) + "," + box.min.y.toFixed(2) + "," + box.min.z.toFixed(2) + ")" +
+                " max=(" + box.max.x.toFixed(2) + "," + box.max.y.toFixed(2) + "," + box.max.z.toFixed(2) + ")" +
+                " size=(" + size.x.toFixed(2) + "," + size.y.toFixed(2) + "," + size.z.toFixed(2) + ")"
+            };
             tryon3DModelCache[shape] = entry;
             resolve(entry);
           }catch(e){ reject(e); }
@@ -2132,9 +2138,24 @@
        only ever moving/scaling/rotating that outer group each frame, keeps
        both offsets independent. */
     var inner = entry.scene.clone(true);
+    /* Diagnostic only, gated behind ?tryonDebug=1: force every mesh to an
+       unlit normal-map material. It ignores lighting, materials and
+       textures completely and just paints each surface by which way it
+       faces — so if the geometry itself is a recognizable pair of round
+       glasses, it'll read as one here even if the real materials are
+       rendering solid black for some other reason (a failed texture, a
+       lighting setup that doesn't suit this particular model, etc). If it
+       still doesn't read as glasses even in this view, the problem is in
+       the geometry/transform, not the materials. */
+    if(tryonDebug){
+      inner.traverse(function(obj){
+        if(obj.isMesh) obj.material = new THREE.MeshNormalMaterial();
+      });
+    }
     tryon3DGroup = new THREE.Group();
     tryon3DGroup.add(inner);
     tryon3DGroup.userData.nativeWidth = entry.width;
+    tryon3DDebugBox = entry.debugBox || "";
     tryonThreeScene.add(tryon3DGroup);
   }
 
@@ -2602,7 +2623,10 @@
           var statusLine = "3D shape=" + (tryonCurrentShape || "-") +
             " status=" + tryon3DStatus + " active=" + tryon3DActive;
           if(tryon3DErrorMsg) statusLine += " err=" + tryon3DErrorMsg.slice(0, 80);
-          tryonCtx.fillText(statusLine, 8, fit.ch - 8);
+          tryonCtx.fillText(statusLine, 8, fit.ch - 22);
+          if(tryon3DActive && tryon3DDebugBox){
+            tryonCtx.fillText("box " + tryon3DDebugBox, 8, fit.ch - 8);
+          }
           tryonCtx.restore();
         }
       }
