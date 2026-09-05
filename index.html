@@ -1983,6 +1983,8 @@
   var tryon3DModelCache = {};
   var tryon3DModelPromises = {};
   var tryon3DReadyShape = null;
+  var tryon3DStatus = "idle";
+  var tryon3DErrorMsg = "";
   var tryonCurrentShape = null;
   var tryon3DActive = false;
   var tryonThreeRenderer = null, tryonThreeScene = null, tryonThreeCamera = null;
@@ -2039,11 +2041,21 @@
 
   function prepareTryOn3D(shape){
     tryon3DReadyShape = null;
+    tryon3DStatus = "idle";
+    tryon3DErrorMsg = "";
     if(!GLASSES_3D_SHAPES[shape]) return;
+    tryon3DStatus = "loading";
     loadGlassesModel3D(shape).then(function(){
       tryon3DReadyShape = shape;
-    }).catch(function(){
+      tryon3DStatus = "ready";
+    }).catch(function(err){
       tryon3DReadyShape = null;
+      tryon3DStatus = "error";
+      tryon3DErrorMsg = (err && (err.message || err.type || String(err))) || "unknown error";
+      /* Also on the console, for anyone who does have devtools open —
+         the on-canvas ?tryonDebug=1 line below is the one meant for a
+         screenshot, since not everyone can easily get to devtools. */
+      try{ console.error("tryon 3D load failed:", err); }catch(e){}
     });
   }
 
@@ -2550,6 +2562,23 @@
               : "Can't find your face — move closer and check the lighting";
             tryonTrackingHint.hidden = false;
           }
+        }
+
+        /* A status line that's always on with ?tryonDebug=1, whether or not
+           3D ever kicks in — this is the one meant to be screenshotted when
+           the model isn't showing up, since it says WHY (still loading,
+           failed and with what error, loaded but for a different shape,
+           or actually active) instead of leaving that a silent guess. */
+        if(tryonDebug){
+          tryonCtx.save();
+          tryonCtx.font = "11px monospace";
+          tryonCtx.fillStyle = "#00e5ff";
+          tryonCtx.textAlign = "left";
+          var statusLine = "3D shape=" + (tryonCurrentShape || "-") +
+            " status=" + tryon3DStatus + " active=" + tryon3DActive;
+          if(tryon3DErrorMsg) statusLine += " err=" + tryon3DErrorMsg.slice(0, 80);
+          tryonCtx.fillText(statusLine, 8, fit.ch - 8);
+          tryonCtx.restore();
         }
       }
       tryonRafId = requestAnimationFrame(frame);
