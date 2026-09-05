@@ -2057,10 +2057,18 @@
       if("outputEncoding" in tryonThreeRenderer && THREE.sRGBEncoding !== undefined){
         tryonThreeRenderer.outputEncoding = THREE.sRGBEncoding;
       }
+      /* Without an HDRI environment map (we don't have one loaded), a single
+         hard directional light can blow a shiny/metallic part straight to
+         pure white instead of a clipped-but-visible highlight. Tone mapping
+         compresses that instead of hard-clipping, and a soft hemisphere
+         light + a weaker directional one lowers the chance of a hotspot in
+         the first place. */
+      tryonThreeRenderer.toneMapping = THREE.ACESFilmicToneMapping;
+      tryonThreeRenderer.toneMappingExposure = 1.0;
       tryonThreeRenderer.setClearColor(0x000000, 0);
       tryonThreeScene = new THREE.Scene();
-      tryonThreeScene.add(new THREE.AmbientLight(0xffffff, 0.9));
-      var dir = new THREE.DirectionalLight(0xffffff, 0.6);
+      tryonThreeScene.add(new THREE.HemisphereLight(0xffffff, 0x555555, 0.9));
+      var dir = new THREE.DirectionalLight(0xffffff, 0.35);
       dir.position.set(0, 1, 2);
       tryonThreeScene.add(dir);
       tryonThreeCamera = new THREE.OrthographicCamera(0, pw || 1, 0, ph || 1, -1000, 1000);
@@ -2126,6 +2134,40 @@
     tryon3DGroup.position.set(centerX, centerY + glassesW*0.02, 0);
     tryon3DGroup.rotation.set(0, tryonYawDeg * Math.PI / 180, angle);
     tryonThreeRenderer.render(tryonThreeScene, tryonThreeCamera);
+
+    /* Same ?tryonDebug=1 overlay as the flat-photo path, plus the two
+       numbers that only matter for the 3D path — nativeWidth (the raw
+       model's own bounding-box width, in whatever units it was exported
+       with) and scaleFactor (what we multiply that by to hit glassesW).
+       If nativeWidth is way bigger than a lens-to-lens span, the model's
+       bounding box is being inflated by something (temple arms splayed out
+       sideways instead of folded back, for instance) and every size
+       computed from it will be thrown off. */
+    if(tryonDebug){
+      tryonCtx.save();
+      function dot3(pt, color){
+        tryonCtx.beginPath();
+        tryonCtx.arc(pt.x, pt.y, 4, 0, Math.PI*2);
+        tryonCtx.fillStyle = color;
+        tryonCtx.fill();
+      }
+      dot3(eyeScreenLeft, "#ff2d55");
+      dot3(eyeScreenRight, "#ff2d55");
+      dot3(cheekScreenLeft, "#2d7bff");
+      dot3(cheekScreenRight, "#2d7bff");
+      dot3({x:centerX, y:centerY}, "#ffd60a");
+      tryonCtx.font = "12px monospace";
+      tryonCtx.fillStyle = "#ffd60a";
+      tryonCtx.textAlign = "left";
+      tryonCtx.fillText(
+        "eyeDist=" + eyeDist.toFixed(0) + " faceWidth=" + faceWidth.toFixed(0) +
+        " glassesW=" + glassesW.toFixed(0), 8, 16
+      );
+      tryonCtx.fillText(
+        "nativeWidth=" + nativeWidth.toFixed(3) + " scaleFactor=" + scaleFactor.toFixed(4), 8, 32
+      );
+      tryonCtx.restore();
+    }
   }
 
   function getCutout(id){
