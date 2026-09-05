@@ -234,11 +234,19 @@
   .hero-slide-bg{ position:absolute; inset:0; z-index:0; }
   .hero-slide-sale .hero-slide-bg{ background:#e7d8bd; }
   .hero-slide-lens .hero-slide-bg{ background:var(--brand-dark); }
-  .hero-slide-lens .eyebrow{ color:var(--amber); }
-  .hero-slide-lens .eyebrow::before{ background:var(--amber); }
-  .hero-slide-lens h1{ color:var(--brand-cream); }
-  .hero-slide-lens .lede{ color:color-mix(in srgb, var(--brand-cream) 78%, transparent); }
-  .hero-slide-lens .btn-primary{ background:var(--amber); color:var(--amber-ink); border-color:var(--amber); }
+  .hero-slide-photo{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center; display:block; }
+  .hero-slide-scrim{
+    position:absolute; inset:0;
+    background:linear-gradient(to right, rgba(20,23,15,.8) 0%, rgba(20,23,15,.55) 34%, rgba(20,23,15,.2) 60%, rgba(20,23,15,0) 80%);
+  }
+  [dir="rtl"] .hero-slide-scrim{
+    background:linear-gradient(to left, rgba(20,23,15,.8) 0%, rgba(20,23,15,.55) 34%, rgba(20,23,15,.2) 60%, rgba(20,23,15,0) 80%);
+  }
+  .hero-slide-sale .eyebrow, .hero-slide-lens .eyebrow{ color:var(--amber); }
+  .hero-slide-sale .eyebrow::before, .hero-slide-lens .eyebrow::before{ background:var(--amber); }
+  .hero-slide-sale h1, .hero-slide-lens h1{ color:var(--brand-cream); }
+  .hero-slide-sale .lede, .hero-slide-lens .lede{ color:color-mix(in srgb, var(--brand-cream) 78%, transparent); }
+  .hero-slide-sale .btn-primary, .hero-slide-lens .btn-primary{ background:var(--amber); color:var(--amber-ink); border-color:var(--amber); }
 
   .hero-slide-copy{ position:relative; z-index:2; padding-block:3rem; pointer-events:none; }
   .hero-slide-copy .inner{ max-width:30rem; pointer-events:auto; }
@@ -818,8 +826,10 @@
     <section class="hero" id="hero">
     <div class="hero-slides" id="heroSlides">
       <div class="hero-slide hero-slide-sale active" data-slide-index="0">
-        <div class="hero-slide-bg" aria-hidden="true"></div>
-        <div class="hero-slide-stage"><img id="heroImgSale" class="hero-slide-media" src="" alt="" loading="eager"></div>
+        <div class="hero-slide-bg" aria-hidden="true">
+          <img class="hero-slide-photo" src="https://images.unsplash.com/photo-1565104781149-275a5392dabc?auto=format&amp;fit=crop&amp;w=1920&amp;h=1000&amp;q=80&amp;crop=faces" alt="" loading="eager">
+          <div class="hero-slide-scrim"></div>
+        </div>
         <span class="hero-slide-wordmark" data-ar="رامي ربيع" data-en="Rami Rabea">رامي ربيع</span>
         <div class="hero-slide-badge"><img id="heroLogoBadge0" src="" alt="Rami Rabea"></div>
         <div class="wrap hero-slide-copy">
@@ -834,12 +844,9 @@
         </div>
       </div>
       <div class="hero-slide hero-slide-lens" data-slide-index="1">
-        <div class="hero-slide-bg" aria-hidden="true"></div>
-        <div class="hero-slide-stage hero-lens-stage">
-          <div class="lens-box lens-box-1"><span class="lens-box-cap"></span><span class="lens-box-name">AR COAT</span><span class="lens-box-tag" data-ar="مضاد للانعكاس" data-en="Anti-Reflective">مضاد للانعكاس</span></div>
-          <div class="lens-box lens-box-2"><span class="lens-box-cap"></span><span class="lens-box-name">BLUE LIGHT</span><span class="lens-box-tag" data-ar="حماية من الضوء الأزرق" data-en="Blue-light filter">حماية من الضوء الأزرق</span></div>
-          <div class="lens-box lens-box-3"><span class="lens-box-cap"></span><span class="lens-box-name">UV 400</span><span class="lens-box-tag" data-ar="حماية من الأشعة فوق البنفسجية" data-en="UV400 protection">حماية من الأشعة فوق البنفسجية</span></div>
-          <div class="lens-box lens-box-4"><span class="lens-box-cap"></span><span class="lens-box-name">PHOTOCHROMIC</span><span class="lens-box-tag" data-ar="عدسات فوتوكروميك" data-en="Photochromic lenses">عدسات فوتوكروميك</span></div>
+        <div class="hero-slide-bg" aria-hidden="true">
+          <img class="hero-slide-photo" src="https://images.unsplash.com/photo-1524255684952-d7185b509571?auto=format&amp;fit=crop&amp;w=1920&amp;h=1000&amp;q=80&amp;crop=faces" alt="" loading="eager">
+          <div class="hero-slide-scrim"></div>
         </div>
         <span class="hero-slide-wordmark" data-ar="رامي ربيع" data-en="Rami Rabea">رامي ربيع</span>
         <div class="hero-slide-badge"><img id="heroLogoBadge1" src="" alt="Rami Rabea"></div>
