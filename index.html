@@ -694,6 +694,8 @@
   .tryon-stage video.tryon-video-covered{ visibility:hidden; }
   #tryonCanvas{ position:absolute; inset:0; width:100%; height:100%; z-index:1; }
   #tryonCanvas[hidden]{ display:none; }
+  #tryonCanvas3D{ position:absolute; inset:0; width:100%; height:100%; z-index:2; pointer-events:none; }
+  #tryonCanvas3D[hidden]{ display:none; }
   .tryon-tracking-hint{
     position:absolute; inset-inline:0; inset-block-end:.8rem; text-align:center; z-index:4;
     font-size:.78rem; color:var(--brand-cream); background:rgba(0,0,0,.5);
@@ -1291,6 +1293,7 @@
     <div class="tryon-stage" id="tryonStage">
       <video id="tryonVideo" autoplay playsinline muted></video>
       <canvas id="tryonCanvas" hidden></canvas>
+      <canvas id="tryonCanvas3D" hidden></canvas>
       <div class="tryon-glasses-wrap" id="tryonGlassesWrap" hidden>
         <img id="tryonGlassesImg" src="" alt="">
       </div>
@@ -1931,6 +1934,7 @@
   var tryonVideo = document.getElementById("tryonVideo");
   var tryonCanvas = document.getElementById("tryonCanvas");
   var tryonCtx = tryonCanvas.getContext("2d");
+  var tryonCanvas3D = document.getElementById("tryonCanvas3D");
   var tryonGate = document.getElementById("tryonGate");
   var tryonError = document.getElementById("tryonError");
   var tryonControls = document.getElementById("tryonControls");
@@ -1960,6 +1964,169 @@
   var tryonNoFaceSince = null;
   var FACE_LM_CDN_BASE = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
   var FACE_LM_MODEL_URL = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task";
+
+  /* ---- experimental real 3D glasses models (round shape only, for now) ----
+     Only shapes listed here have an uploaded .glb in the Supabase
+     "glasses-3d-models" bucket. Every other shape keeps using the existing,
+     already-working flat-photo overlay above — this is purely additive and
+     falls back silently (network error, missing file, load failure, WebGL
+     unavailable) to that same flat overlay with no visible error to the
+     shopper. Using three.js@0.125.0 specifically because its examples/jsm
+     loaders still import three via a relative path instead of the bare
+     "three" specifier newer versions require — that needs a browser import
+     map, which is one more moving part this can't be tested live, so an
+     older, self-contained version is the safer choice here. */
+  var GLASSES_3D_SHAPES = { round: true };
+  var THREE_CDN = "https://cdn.jsdelivr.net/npm/three@0.125.0";
+  var tryonThreePromise = null;
+  var tryon3DMods = null;
+  var tryon3DModelCache = {};
+  var tryon3DModelPromises = {};
+  var tryon3DReadyShape = null;
+  var tryonCurrentShape = null;
+  var tryon3DActive = false;
+  var tryonThreeRenderer = null, tryonThreeScene = null, tryonThreeCamera = null;
+  var tryon3DGroup = null;
+
+  function loadThree(){
+    if(tryonThreePromise) return tryonThreePromise;
+    tryonThreePromise = Promise.all([
+      import(THREE_CDN + "/build/three.module.js"),
+      import(THREE_CDN + "/examples/jsm/loaders/GLTFLoader.js")
+    ]).then(function(mods){
+      var result = { THREE: mods[0], GLTFLoader: mods[1].GLTFLoader };
+      tryon3DMods = result;
+      return result;
+    }).catch(function(err){
+      tryonThreePromise = null;
+      throw err;
+    });
+    return tryonThreePromise;
+  }
+
+  function loadGlassesModel3D(shape){
+    if(tryon3DModelCache[shape]) return Promise.resolve(tryon3DModelCache[shape]);
+    if(tryon3DModelPromises[shape]) return tryon3DModelPromises[shape];
+    var url = SUPA_URL + "/storage/v1/object/public/glasses-3d-models/" + shape + ".glb";
+    tryon3DModelPromises[shape] = loadThree().then(function(mods){
+      return new Promise(function(resolve, reject){
+        var loader = new mods.GLTFLoader();
+        loader.load(url, function(gltf){
+          try{
+            var THREE = mods.THREE;
+            var scene = gltf.scene || (gltf.scenes && gltf.scenes[0]);
+            if(!scene) throw new Error("no scene in glb");
+            var box = new THREE.Box3().setFromObject(scene);
+            var size = box.getSize(new THREE.Vector3());
+            var center = box.getCenter(new THREE.Vector3());
+            /* Recenter so the model's own visual middle sits at its local
+               origin — the on-screen position we compute from face
+               landmarks below assumes that, and raw exported models rarely
+               happen to be centered on their own. */
+            scene.position.sub(center);
+            var entry = { scene: scene, width: size.x || 1 };
+            tryon3DModelCache[shape] = entry;
+            resolve(entry);
+          }catch(e){ reject(e); }
+        }, undefined, function(err){ reject(err); });
+      });
+    }).catch(function(err){
+      delete tryon3DModelPromises[shape];
+      throw err;
+    });
+    return tryon3DModelPromises[shape];
+  }
+
+  function prepareTryOn3D(shape){
+    tryon3DReadyShape = null;
+    if(!GLASSES_3D_SHAPES[shape]) return;
+    loadGlassesModel3D(shape).then(function(){
+      tryon3DReadyShape = shape;
+    }).catch(function(){
+      tryon3DReadyShape = null;
+    });
+  }
+
+  function ensureThreeSetup(pw, ph){
+    if(!tryon3DMods) return false;
+    var THREE = tryon3DMods.THREE;
+    if(!tryonThreeRenderer){
+      tryonThreeRenderer = new THREE.WebGLRenderer({
+        canvas: tryonCanvas3D, alpha:true, antialias:true, preserveDrawingBuffer:true
+      });
+      if("outputEncoding" in tryonThreeRenderer && THREE.sRGBEncoding !== undefined){
+        tryonThreeRenderer.outputEncoding = THREE.sRGBEncoding;
+      }
+      tryonThreeRenderer.setClearColor(0x000000, 0);
+      tryonThreeScene = new THREE.Scene();
+      tryonThreeScene.add(new THREE.AmbientLight(0xffffff, 0.9));
+      var dir = new THREE.DirectionalLight(0xffffff, 0.6);
+      dir.position.set(0, 1, 2);
+      tryonThreeScene.add(dir);
+      tryonThreeCamera = new THREE.OrthographicCamera(0, pw || 1, 0, ph || 1, -1000, 1000);
+      tryonThreeCamera.position.z = 100;
+    }
+    if(pw && ph && (tryonThreeCamera.right !== pw || tryonThreeCamera.bottom !== ph)){
+      tryonThreeCamera.left = 0; tryonThreeCamera.right = pw;
+      tryonThreeCamera.top = 0; tryonThreeCamera.bottom = ph;
+      tryonThreeCamera.updateProjectionMatrix();
+      /* pw/ph here are CSS pixels (same space the face-landmark math below
+         uses for position), not the device-pixel canvas buffer size — same
+         split the 2D canvas uses via tryonCtx.setTransform(dpr,...).
+         setPixelRatio + setSize(..., false) makes three.js render at full
+         device resolution (crisp) while every position/scale we set below
+         stays in that same CSS-pixel world. */
+      tryonThreeRenderer.setPixelRatio(window.devicePixelRatio || 1);
+      tryonThreeRenderer.setSize(pw, ph, false);
+    }
+    return true;
+  }
+
+  function setupGlasses3DInstance(){
+    if(!tryon3DMods || !tryon3DReadyShape) return;
+    var entry = tryon3DModelCache[tryon3DReadyShape];
+    if(!entry) return;
+    ensureThreeSetup(tryonCanvas.width || 1, tryonCanvas.height || 1);
+    if(tryon3DGroup) tryonThreeScene.remove(tryon3DGroup);
+    tryon3DGroup = entry.scene.clone(true);
+    tryon3DGroup.userData.nativeWidth = entry.width;
+    tryonThreeScene.add(tryon3DGroup);
+  }
+
+  /* Same face-landmark math as drawGlassesForLandmarks below (identical eye/
+     cheek points, same size and roll-angle formulas) so a shape's behavior
+     doesn't change depending on whether it happens to have a 3D model yet —
+     only the final draw step differs: a real 3D render instead of a flat
+     image, which is what lets the "turn left/right" yaw become an actual
+     rotation of the model instead of a flattening trick. */
+  function updateGlasses3D(lm, fit){
+    if(!tryon3DGroup || !tryonThreeRenderer) return;
+    ensureThreeSetup(fit.cw, fit.ch);
+    var eyeScreenLeft  = mapMirroredPoint(lm[263].x, lm[263].y, fit.dispW, fit.dispH, fit.offX, fit.offY);
+    var eyeScreenRight = mapMirroredPoint(lm[33].x,  lm[33].y,  fit.dispW, fit.dispH, fit.offX, fit.offY);
+    var dx = eyeScreenRight.x - eyeScreenLeft.x, dy = eyeScreenRight.y - eyeScreenLeft.y;
+    var eyeDist = Math.sqrt(dx*dx + dy*dy);
+    var eyeAngle = Math.atan2(dy, dx);
+    var centerX = (eyeScreenLeft.x + eyeScreenRight.x) / 2;
+    var centerY = (eyeScreenLeft.y + eyeScreenRight.y) / 2;
+
+    var cheekScreenLeft  = mapMirroredPoint(lm[454].x, lm[454].y, fit.dispW, fit.dispH, fit.offX, fit.offY);
+    var cheekScreenRight = mapMirroredPoint(lm[234].x, lm[234].y, fit.dispW, fit.dispH, fit.offX, fit.offY);
+    var fdx = cheekScreenRight.x - cheekScreenLeft.x, fdy = cheekScreenRight.y - cheekScreenLeft.y;
+    var faceWidth = Math.sqrt(fdx*fdx + fdy*fdy);
+    var cheekAngle = Math.atan2(fdy, fdx);
+    var angle = (eyeAngle + cheekAngle) / 2 + (tryonAutoRotateOffset * Math.PI / 180);
+    var baseW = faceWidth > eyeDist ? faceWidth * 0.88 : eyeDist * 1.55;
+    var userMult = (parseFloat(tryonSizeInput.value) || 52) / 52;
+    var glassesW = baseW * userMult;
+
+    var nativeWidth = tryon3DGroup.userData.nativeWidth || 1;
+    var scaleFactor = glassesW / nativeWidth;
+    tryon3DGroup.scale.set(scaleFactor, scaleFactor, scaleFactor);
+    tryon3DGroup.position.set(centerX, centerY + glassesW*0.02, 0);
+    tryon3DGroup.rotation.set(0, tryonYawDeg * Math.PI / 180, angle);
+    tryonThreeRenderer.render(tryonThreeScene, tryonThreeCamera);
+  }
 
   function getCutout(id){
     return new Promise(function(resolve){
@@ -2292,6 +2459,17 @@
     tryonModeToggle.textContent = state.lang === "ar" ? "تحكم يدوي بالماوس" : "Control it with your mouse";
     tryonNoFaceSince = Date.now();
 
+    /* Real 3D only kicks in for a shape that both has an uploaded model AND
+       matches the product currently open — every other shape keeps using
+       the flat-photo overlay exactly as before. */
+    tryon3DActive = !!(tryon3DReadyShape && tryonCurrentShape && tryon3DReadyShape === tryonCurrentShape);
+    if(tryon3DActive){
+      setupGlasses3DInstance();
+      tryonCanvas3D.hidden = false;
+    } else {
+      tryonCanvas3D.hidden = true;
+    }
+
     function frame(){
       if(!tryonStream) return;
       var fit = computeCoverFit();
@@ -2306,11 +2484,16 @@
               faceFound = true;
               tryonNoFaceSince = null;
               tryonTrackingHint.hidden = true;
-              drawGlassesForLandmarks(result.faceLandmarks[0], fit);
+              if(tryon3DActive){
+                updateGlasses3D(result.faceLandmarks[0], fit);
+              } else {
+                drawGlassesForLandmarks(result.faceLandmarks[0], fit);
+              }
             }
           }catch(e){ /* one bad frame — keep going */ }
         }
         if(!faceFound){
+          if(tryon3DActive && tryonThreeRenderer) tryonThreeRenderer.clear();
           if(tryonNoFaceSince === null) tryonNoFaceSince = Date.now();
           if(Date.now() - tryonNoFaceSince > 1800){
             tryonTrackingHint.textContent = state.lang === "ar"
@@ -2382,7 +2565,11 @@
     stopTrackingLoop();
     var lm = averageLandmarks(samples);
     drawMirroredVideoFrame(fit);
-    drawGlassesForLandmarks(lm, fit);
+    if(tryon3DActive){
+      updateGlasses3D(lm, fit);
+    } else {
+      drawGlassesForLandmarks(lm, fit);
+    }
     tryonCaptured = true;
     tryonCaptureBtn.hidden = true;
     tryonCaptureActions.hidden = false;
@@ -2402,7 +2589,20 @@
 
   function saveTryOnPhoto(){
     try{
-      var url = tryonCanvas.toDataURL("image/png");
+      var url;
+      if(tryon3DActive && !tryonCanvas3D.hidden){
+        /* The video and the glasses are two stacked canvases in 3D mode —
+           flatten them into one image before saving. */
+        var tmp = document.createElement("canvas");
+        tmp.width = tryonCanvas.width;
+        tmp.height = tryonCanvas.height;
+        var tctx = tmp.getContext("2d");
+        tctx.drawImage(tryonCanvas, 0, 0);
+        tctx.drawImage(tryonCanvas3D, 0, 0);
+        url = tmp.toDataURL("image/png");
+      } else {
+        url = tryonCanvas.toDataURL("image/png");
+      }
       var a = document.createElement("a");
       a.href = url;
       a.download = "try-on.png";
@@ -2418,6 +2618,9 @@
 
   function startManualFallback(showNotice){
     tryonTrackingMode = "manual";
+    tryon3DActive = false;
+    if(tryonThreeRenderer) tryonThreeRenderer.clear();
+    tryonCanvas3D.hidden = true;
     tryonVideo.classList.remove("tryon-video-covered");
     tryonCanvas.hidden = true;
     tryonRotateRow.hidden = false;
@@ -2460,6 +2663,10 @@
     tryonCaptureNote.hidden = true;
     tryonModeToggle.hidden = true;
     tryonVideo.classList.remove("tryon-video-covered");
+    tryon3DActive = false;
+    tryonCanvas3D.hidden = true;
+    tryonCurrentShape = p.shape;
+    prepareTryOn3D(p.shape);
     resetTF();
     getCutout(p.id).then(function(url){
       tryonImg.src = url || PRODUCT_IMAGES[p.id] || "";
@@ -2482,6 +2689,9 @@
     tryonCaptureActions.hidden = true;
     tryonCaptureNote.hidden = true;
     tryonModeToggle.hidden = true;
+    tryon3DActive = false;
+    if(tryonThreeRenderer) tryonThreeRenderer.clear();
+    tryonCanvas3D.hidden = true;
     if(tryonCtx) tryonCtx.clearRect(0, 0, tryonCanvas.width, tryonCanvas.height);
     if(tryonStream){
       tryonStream.getTracks().forEach(function(tr){ tr.stop(); });
