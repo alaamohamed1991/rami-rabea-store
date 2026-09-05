@@ -2503,20 +2503,27 @@
 
     /* Real 3D only kicks in for a shape that both has an uploaded model AND
        matches the product currently open — every other shape keeps using
-       the flat-photo overlay exactly as before. */
-    tryon3DActive = !!(tryon3DReadyShape && tryonCurrentShape && tryon3DReadyShape === tryonCurrentShape);
-    if(tryon3DActive){
-      setupGlasses3DInstance();
-      tryonCanvas3D.hidden = false;
-    } else {
-      tryonCanvas3D.hidden = true;
-    }
+       the flat-photo overlay exactly as before. This starts false and is
+       re-checked every frame below (not just once here) because loading
+       three.js plus the .glb file is a multi-step network fetch that can
+       easily still be in flight the moment live tracking starts — checking
+       only once right here would permanently miss a model that finishes
+       loading a second or two later. */
+    tryon3DActive = false;
+    tryonCanvas3D.hidden = true;
 
     function frame(){
       if(!tryonStream) return;
       var fit = computeCoverFit();
       if(fit){
         drawMirroredVideoFrame(fit);
+
+        var want3D = !!(tryon3DReadyShape && tryonCurrentShape && tryon3DReadyShape === tryonCurrentShape);
+        if(want3D !== tryon3DActive){
+          tryon3DActive = want3D;
+          tryonCanvas3D.hidden = !tryon3DActive;
+          if(tryon3DActive) setupGlasses3DInstance();
+        }
 
         var faceFound = false;
         if(tryonFaceLandmarker && tryonVideo.readyState >= 2){
