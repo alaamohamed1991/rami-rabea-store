@@ -678,6 +678,11 @@
 
   .btn-tryon{
     background:var(--brand-dark); color:var(--brand-cream); border-color:var(--brand-dark);
+    /* Virtual try-on feature turned off site-wide for now — this hides
+       every entry point to it (product page, quick view) without touching
+       the underlying try-on code, so it's a one-line change to bring back
+       later if wanted. */
+    display:none !important;
   }
   .btn-tryon:hover{ box-shadow:0 22px 40px -20px color-mix(in srgb, var(--brand-dark) 60%, transparent); }
   .btn-tryon svg{ flex:none; }
