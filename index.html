@@ -2100,12 +2100,26 @@
       var dir = new THREE.DirectionalLight(0xffffff, 0.35);
       dir.position.set(0, 1, 2);
       tryonThreeScene.add(dir);
-      tryonThreeCamera = new THREE.OrthographicCamera(0, pw || 1, 0, ph || 1, -1000, 1000);
+      /* left/right/top/bottom in that constructor order — this MUST stay a
+         normal top>bottom frustum (standard right-handed camera, no axis
+         flip). An earlier version passed top=0/bottom=ph to make world Y
+         increase downward like canvas pixels, which seemed harmless but
+         actually negates one axis of the projection matrix — that flips
+         the handedness of the whole scene as this camera sees it, which
+         flips which side of every triangle counts as "front" for backface
+         culling. The visible result was every glasses model rendering
+         inside-out: outer surfaces culled away, inner surfaces showing
+         instead — the solid-black/broken look the model kept having no
+         matter what lighting or material changes were tried, because the
+         real problem was never lighting. The Y flip needed to match pixel
+         space is now applied to the position VALUE we feed in per frame
+         (see updateGlasses3D) instead of to the camera itself. */
+      tryonThreeCamera = new THREE.OrthographicCamera(0, pw || 1, ph || 1, 0, -1000, 1000);
       tryonThreeCamera.position.z = 100;
     }
-    if(pw && ph && (tryonThreeCamera.right !== pw || tryonThreeCamera.bottom !== ph)){
+    if(pw && ph && (tryonThreeCamera.right !== pw || tryonThreeCamera.top !== ph)){
       tryonThreeCamera.left = 0; tryonThreeCamera.right = pw;
-      tryonThreeCamera.top = 0; tryonThreeCamera.bottom = ph;
+      tryonThreeCamera.top = ph; tryonThreeCamera.bottom = 0;
       tryonThreeCamera.updateProjectionMatrix();
       /* pw/ph here are CSS pixels (same space the face-landmark math below
          uses for position), not the device-pixel canvas buffer size — same
@@ -2189,8 +2203,18 @@
     var nativeWidth = tryon3DGroup.userData.nativeWidth || 1;
     var scaleFactor = glassesW / nativeWidth;
     tryon3DGroup.scale.set(scaleFactor, scaleFactor, scaleFactor);
-    tryon3DGroup.position.set(centerX, centerY + glassesW*0.02, 0);
-    tryon3DGroup.rotation.set(0, tryonYawDeg * Math.PI / 180, angle);
+    /* The camera is a standard, non-flipped one now (see ensureThreeSetup),
+       so world Y increases UPWARD like normal three.js — the opposite of
+       centerY, which is in canvas-pixel space (Y increases downward). Flip
+       it right here, at the one spot it's used for position, instead of
+       flipping the camera itself. Roll also needs its sign inverted for
+       the same reason: `angle` was derived to be clockwise-positive to
+       match ctx.rotate() in the 2D path's canvas (Y-down) space; on a
+       standard (Y-up, non-mirrored) camera, a positive rotation.z turns
+       counter-clockwise, so it has to go in negated to still look like the
+       same clockwise tilt the 2D path shows. */
+    tryon3DGroup.position.set(centerX, fit.ch - (centerY + glassesW*0.02), 0);
+    tryon3DGroup.rotation.set(0, tryonYawDeg * Math.PI / 180, -angle);
     tryonThreeRenderer.render(tryonThreeScene, tryonThreeCamera);
 
     /* Same ?tryonDebug=1 overlay as the flat-photo path, plus the two
