@@ -2152,16 +2152,16 @@
        only ever moving/scaling/rotating that outer group each frame, keeps
        both offsets independent. */
     var inner = entry.scene.clone(true);
-    /* Diagnostic only, gated behind ?tryonDebug=1: force every mesh to an
-       unlit normal-map material. It ignores lighting, materials and
-       textures completely and just paints each surface by which way it
-       faces — so if the geometry itself is a recognizable pair of round
-       glasses, it'll read as one here even if the real materials are
-       rendering solid black for some other reason (a failed texture, a
-       lighting setup that doesn't suit this particular model, etc). If it
-       still doesn't read as glasses even in this view, the problem is in
-       the geometry/transform, not the materials. */
-    if(tryonDebug){
+    /* The normal-map diagnostic view (forcing every mesh to an unlit
+       MeshNormalMaterial) already did its job — it confirmed the geometry
+       itself is a correctly-shaped, correctly-positioned pair of round
+       glasses once the camera/culling fix went in. Leaving it force-on
+       would now just hide the model's real materials and colors behind
+       that debug rainbow, so it's switched off again; flip
+       FORCE_3D_NORMAL_DEBUG below back to true only if another rendering
+       mystery needs the same silhouette check again. */
+    var FORCE_3D_NORMAL_DEBUG = false;
+    if(FORCE_3D_NORMAL_DEBUG){
       inner.traverse(function(obj){
         if(obj.isMesh) obj.material = new THREE.MeshNormalMaterial();
       });
