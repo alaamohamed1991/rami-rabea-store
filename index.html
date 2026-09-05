@@ -235,6 +235,12 @@
   .hero-slide-sale .hero-slide-bg{ background:#e7d8bd; }
   .hero-slide-lens .hero-slide-bg{ background:var(--brand-dark); }
   .hero-slide-photo{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center; display:block; }
+  .hero-slide-bg-split{ display:flex; }
+  .hero-slide-bg-split .hero-slide-photo{ position:relative; inset:auto; width:50%; height:100%; flex:none; }
+  .hero-slide-bg-split::after{
+    content:""; position:absolute; inset-block:0; inset-inline-start:50%; width:1px; margin-inline-start:-.5px;
+    background:rgba(246,238,227,.28); z-index:1;
+  }
   .hero-slide-scrim{
     position:absolute; inset:0;
     /* Copy always sits on the physical right (see [dir="ltr"] .hero-slide below),
@@ -858,8 +864,9 @@
     <section class="hero" id="hero">
     <div class="hero-slides" id="heroSlides">
       <div class="hero-slide hero-slide-sale active" data-slide-index="0">
-        <div class="hero-slide-bg" aria-hidden="true">
-          <img class="hero-slide-photo" src="https://images.unsplash.com/photo-1565104781149-275a5392dabc?auto=format&amp;fit=crop&amp;w=1920&amp;h=1000&amp;q=80&amp;crop=faces" alt="" loading="eager">
+        <div class="hero-slide-bg hero-slide-bg-split" aria-hidden="true">
+          <img class="hero-slide-photo hero-slide-photo-half" src="https://images.unsplash.com/photo-1524255684952-d7185b509571?auto=format&amp;fit=crop&amp;w=1200&amp;h=1000&amp;q=80&amp;crop=faces" alt="" loading="eager">
+          <img class="hero-slide-photo hero-slide-photo-half" src="https://images.unsplash.com/photo-1565104781149-275a5392dabc?auto=format&amp;fit=crop&amp;w=1200&amp;h=1000&amp;q=80&amp;crop=faces" alt="" loading="eager">
           <div class="hero-slide-scrim"></div>
         </div>
         <span class="hero-slide-wordmark" data-ar="رامي ربيع" data-en="Rami Rabea">رامي ربيع</span>
@@ -876,10 +883,7 @@
         </div>
       </div>
       <div class="hero-slide hero-slide-lens" data-slide-index="1">
-        <div class="hero-slide-bg" aria-hidden="true">
-          <img class="hero-slide-photo" src="https://images.unsplash.com/photo-1524255684952-d7185b509571?auto=format&amp;fit=crop&amp;w=1920&amp;h=1000&amp;q=80&amp;crop=faces" alt="" loading="eager">
-          <div class="hero-slide-scrim"></div>
-        </div>
+        <div class="hero-slide-bg" aria-hidden="true"></div>
         <span class="hero-slide-wordmark" data-ar="رامي ربيع" data-en="Rami Rabea">رامي ربيع</span>
         <div class="hero-slide-badge"><img id="heroLogoBadge1" src="" alt="Rami Rabea"></div>
         <div class="wrap hero-slide-copy">
