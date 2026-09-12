@@ -244,11 +244,19 @@
   .hero-slide-scrim{
     position:absolute; inset:0;
     /* Copy always sits on the physical right (see [dir="ltr"] .hero-slide below),
-       so the scrim always darkens the right side and fades out toward the left,
-       regardless of language direction. */
-    background:linear-gradient(to left, rgba(20,23,15,.8) 0%, rgba(20,23,15,.55) 34%, rgba(20,23,15,.2) 60%, rgba(20,23,15,0) 80%);
+       so the scrim darkens the right side and fades out toward the left, regardless
+       of language direction. Kept narrow/light on purpose: the text card itself
+       (see .hero-slide-copy .inner below) carries the contrast, so the photo
+       underneath — including a person standing on the right side of the frame —
+       stays visible instead of being buried under a wide dark wash. */
+    background:linear-gradient(to left, rgba(20,23,15,.42) 0%, rgba(20,23,15,.22) 16%, rgba(20,23,15,.06) 32%, rgba(20,23,15,0) 46%);
   }
   [dir="ltr"] .hero-slide{ justify-content:flex-end; }
+  /* .wrap sets margin-inline:auto for centering as a page container; inside the
+     flex hero slide those auto margins absorb the free space and re-center the
+     box instead of letting justify-content push it flush to the physical right.
+     Zero them here so the slide copy actually sits flush right in both directions. */
+  .hero-slide-copy.wrap{ margin-inline:0; }
   .hero-slide-sun .eyebrow, .hero-slide-rx .eyebrow{ color:var(--amber); }
   .hero-slide-sun .eyebrow::before, .hero-slide-rx .eyebrow::before{ background:var(--amber); }
   .hero-slide-sun h1, .hero-slide-rx h1{ color:var(--brand-cream); }
@@ -261,6 +269,20 @@
   .hero-slide-copy h1{ font-size:clamp(2.1rem,5.4vw,3.8rem); line-height:1.04; margin-block-start:.6rem; text-wrap:balance; }
   .hero-slide-copy .lede{ font-size:1rem; max-width:34ch; margin-block-start:1rem; color:var(--ink-soft); }
   .hero-slide-copy .hero-ctas{ margin-block-start:1.6rem; }
+  /* The sun/rx slides put a photo of a person behind this copy, on the same side
+     as the text. Rather than lean on a wide dark scrim (which was hiding people
+     standing on the right of the photo), the text sits on its own small card with
+     a blurred dark backdrop, so it stays legible while the photo underneath —
+     including anyone on the right side of the frame — stays visible. */
+  .hero-slide-sun .hero-slide-copy .inner,
+  .hero-slide-rx .hero-slide-copy .inner{
+    background:rgba(20,23,15,.46);
+    backdrop-filter:blur(10px) saturate(1.1);
+    -webkit-backdrop-filter:blur(10px) saturate(1.1);
+    border-radius:1.1rem;
+    padding:1.7rem 1.9rem;
+    box-shadow:0 24px 48px -24px rgba(0,0,0,.55);
+  }
 
   .hero-slide-stage{
     position:absolute; inset-block-end:3rem; inset-inline-start:3%;
