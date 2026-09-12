@@ -232,8 +232,8 @@
   @media (prefers-reduced-motion: reduce){ .hero-slide{ transition:none; } }
 
   .hero-slide-bg{ position:absolute; inset:0; z-index:0; }
-  .hero-slide-sale .hero-slide-bg{ background:#e7d8bd; }
-  .hero-slide-lens .hero-slide-bg{ background:var(--brand-dark); }
+  .hero-slide-sun .hero-slide-bg{ background:#e7d8bd; }
+  .hero-slide-rx .hero-slide-bg{ background:var(--brand-dark); }
   .hero-slide-photo{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center; display:block; }
   .hero-slide-bg-split{ display:flex; }
   .hero-slide-bg-split .hero-slide-photo{ position:relative; inset:auto; width:50%; height:100%; flex:none; }
@@ -249,11 +249,11 @@
     background:linear-gradient(to left, rgba(20,23,15,.8) 0%, rgba(20,23,15,.55) 34%, rgba(20,23,15,.2) 60%, rgba(20,23,15,0) 80%);
   }
   [dir="ltr"] .hero-slide{ justify-content:flex-end; }
-  .hero-slide-sale .eyebrow, .hero-slide-lens .eyebrow{ color:var(--amber); }
-  .hero-slide-sale .eyebrow::before, .hero-slide-lens .eyebrow::before{ background:var(--amber); }
-  .hero-slide-sale h1, .hero-slide-lens h1{ color:var(--brand-cream); }
-  .hero-slide-sale .lede, .hero-slide-lens .lede{ color:color-mix(in srgb, var(--brand-cream) 78%, transparent); }
-  .hero-slide-sale .btn-primary, .hero-slide-lens .btn-primary{ background:var(--amber); color:var(--amber-ink); border-color:var(--amber); }
+  .hero-slide-sun .eyebrow, .hero-slide-rx .eyebrow{ color:var(--amber); }
+  .hero-slide-sun .eyebrow::before, .hero-slide-rx .eyebrow::before{ background:var(--amber); }
+  .hero-slide-sun h1, .hero-slide-rx h1{ color:var(--brand-cream); }
+  .hero-slide-sun .lede, .hero-slide-rx .lede{ color:color-mix(in srgb, var(--brand-cream) 78%, transparent); }
+  .hero-slide-sun .btn-primary, .hero-slide-rx .btn-primary{ background:var(--amber); color:var(--amber-ink); border-color:var(--amber); }
 
   .hero-slide-copy{ position:relative; z-index:2; padding-block:3rem; pointer-events:none; }
   .hero-slide-copy .inner{ max-width:30rem; pointer-events:auto; }
@@ -309,7 +309,7 @@
     font-family:'Markazi Text',serif; font-weight:700; font-size:1.5rem; letter-spacing:.01em;
     color:var(--ink);
   }
-  .hero-slide-lens .hero-slide-wordmark{ color:var(--brand-cream); }
+  .hero-slide-rx .hero-slide-wordmark{ color:var(--brand-cream); }
   [dir="rtl"] .hero-slide-wordmark{ unicode-bidi:plaintext; }
 
   .hero-slide-badge{
@@ -318,7 +318,7 @@
     border:1px solid color-mix(in srgb, var(--ink) 20%, transparent);
     background:color-mix(in srgb, var(--paper) 70%, transparent); backdrop-filter:blur(4px);
   }
-  .hero-slide-lens .hero-slide-badge{ border-color:rgba(246,238,227,0.3); background:rgba(246,238,227,0.12); }
+  .hero-slide-rx .hero-slide-badge{ border-color:rgba(246,238,227,0.3); background:rgba(246,238,227,0.12); }
   .hero-slide-badge img{ width:100%; height:100%; object-fit:cover; display:block; }
 
   .hero-arrow{
@@ -863,36 +863,40 @@
 <main>
     <section class="hero" id="hero">
     <div class="hero-slides" id="heroSlides">
-      <div class="hero-slide hero-slide-sale active" data-slide-index="0">
+      <div class="hero-slide hero-slide-sun active" data-slide-index="0">
         <div class="hero-slide-bg hero-slide-bg-split" aria-hidden="true">
-          <img class="hero-slide-photo hero-slide-photo-half" src="https://images.unsplash.com/photo-1524255684952-d7185b509571?auto=format&amp;fit=crop&amp;w=1200&amp;h=1000&amp;q=80&amp;crop=faces" alt="" loading="eager">
           <img class="hero-slide-photo hero-slide-photo-half" src="https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?auto=format&amp;fit=crop&amp;w=1200&amp;h=1000&amp;q=80&amp;crop=faces" alt="" loading="eager">
+          <img class="hero-slide-photo hero-slide-photo-half" src="https://images.unsplash.com/photo-1594679987969-e418d938ee8b?auto=format&amp;fit=crop&amp;w=1200&amp;h=1000&amp;q=80&amp;crop=faces" alt="" loading="eager">
           <div class="hero-slide-scrim"></div>
         </div>
         <span class="hero-slide-wordmark" data-ar="رامي ربيع" data-en="Rami Rabea">رامي ربيع</span>
         <div class="hero-slide-badge"><img id="heroLogoBadge0" src="" alt="Rami Rabea"></div>
         <div class="wrap hero-slide-copy">
           <div class="inner">
-            <span class="eyebrow" data-ar="عرض لفترة محدودة" data-en="Limited-time offer">عرض لفترة محدودة</span>
-            <h1 data-ar="تخفيضات تصل إلى 50%" data-en="Up to 50% off">تخفيضات تصل إلى 50%</h1>
-            <p class="lede" data-ar="على تشكيلة مختارة من الإطارات الطبية ونظارات الشمس، بشحن سريع لكل محافظات مصر." data-en="On a curated selection of prescription frames and sunglasses — fast delivery across Egypt.">على تشكيلة مختارة من الإطارات الطبية ونظارات الشمس، بشحن سريع لكل محافظات مصر.</p>
+            <span class="eyebrow" data-ar="تسوّق حسب النوع" data-en="Shop by category">تسوّق حسب النوع</span>
+            <h1 data-ar="نظارات الشمس" data-en="Sunglasses">نظارات الشمس</h1>
+            <p class="lede" data-ar="تشكيلة نظارات شمس عصرية للرجال والنساء، بحماية كاملة من الأشعة فوق البنفسجية." data-en="A modern sunglasses collection for men and women, with full UV protection.">تشكيلة نظارات شمس عصرية للرجال والنساء، بحماية كاملة من الأشعة فوق البنفسجية.</p>
             <div class="hero-ctas">
-              <a href="#shop" class="btn btn-primary" data-ar="تسوّق التخفيضات" data-en="Shop the sale">تسوّق التخفيضات</a>
+              <a href="#/shop/sun" class="btn btn-primary" data-ar="تسوّق نظارات الشمس" data-en="Shop sunglasses">تسوّق نظارات الشمس</a>
             </div>
           </div>
         </div>
       </div>
-      <div class="hero-slide hero-slide-lens" data-slide-index="1">
-        <div class="hero-slide-bg" aria-hidden="true"></div>
+      <div class="hero-slide hero-slide-rx" data-slide-index="1">
+        <div class="hero-slide-bg hero-slide-bg-split" aria-hidden="true">
+          <img class="hero-slide-photo hero-slide-photo-half" src="https://images.unsplash.com/photo-1524255684952-d7185b509571?auto=format&amp;fit=crop&amp;w=1200&amp;h=1000&amp;q=80&amp;crop=faces" alt="" loading="eager">
+          <img class="hero-slide-photo hero-slide-photo-half" src="https://images.unsplash.com/photo-1750767303644-5908f369147b?auto=format&amp;fit=crop&amp;w=1200&amp;h=1000&amp;q=80&amp;crop=faces" alt="" loading="eager">
+          <div class="hero-slide-scrim"></div>
+        </div>
         <span class="hero-slide-wordmark" data-ar="رامي ربيع" data-en="Rami Rabea">رامي ربيع</span>
         <div class="hero-slide-badge"><img id="heroLogoBadge1" src="" alt="Rami Rabea"></div>
         <div class="wrap hero-slide-copy">
           <div class="inner">
-            <span class="eyebrow" data-ar="تقنية العدسات" data-en="Lens technology">تقنية العدسات</span>
-            <h1 data-ar="خصم 20% على ترقية العدسات" data-en="20% off lens upgrades">خصم 20% على ترقية العدسات</h1>
-            <p class="lede" data-ar="عدسات مضادة للانعكاس وحماية من الضوء الأزرق — مصممة لعينك، لا العكس." data-en="Anti-reflective, blue-light-filtering lenses — built for your eyes, not the other way around.">عدسات مضادة للانعكاس وحماية من الضوء الأزرق — مصممة لعينك، لا العكس.</p>
+            <span class="eyebrow" data-ar="تسوّق حسب النوع" data-en="Shop by category">تسوّق حسب النوع</span>
+            <h1 data-ar="النظارات الطبية" data-en="Prescription glasses">النظارات الطبية</h1>
+            <p class="lede" data-ar="إطارات طبية مريحة وأنيقة للرجال والنساء، بعدسات مصممة لعينك." data-en="Comfortable, stylish prescription frames for men and women, with lenses built for your eyes.">إطارات طبية مريحة وأنيقة للرجال والنساء، بعدسات مصممة لعينك.</p>
             <div class="hero-ctas">
-              <a href="#features" class="btn btn-primary" data-ar="استكشف تقنية العدسات" data-en="Explore lens technology">استكشف تقنية العدسات</a>
+              <a href="#/shop/prescription" class="btn btn-primary" data-ar="تسوّق النظارات الطبية" data-en="Shop prescription glasses">تسوّق النظارات الطبية</a>
             </div>
           </div>
         </div>
