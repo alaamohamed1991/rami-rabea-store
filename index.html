@@ -245,6 +245,15 @@
      off the top of the man's face (his eyes/forehead sit above frame-center).
      Shift the visible band up so his whole face stays in view. */
   .hero-slide-rx .hero-slide-photo{ object-position:50% 18%; }
+  /* Both photos already show their full width (the hero band is much wider than
+     the source photo, so object-fit:cover shows 100% of the width with no
+     horizontal crop at all) — the people sit exactly where they were framed in
+     the original shot, close to the copy on the right. A small zoom-and-pan
+     trims only the empty background margin on the left of each photo and lets
+     everyone shift left as a result, opening real distance from the text
+     without cropping either person out of frame. */
+  .hero-slide-sun .hero-slide-photo{ transform:scale(1.11) translateX(-5%); }
+  .hero-slide-rx .hero-slide-photo{ transform:scale(1.14) translateX(-6%); }
   .hero-slide-bg-split{ display:flex; }
   .hero-slide-bg-split .hero-slide-photo{ position:relative; inset:auto; width:50%; height:100%; flex:none; }
   .hero-slide-bg-split::after{
