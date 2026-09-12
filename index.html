@@ -97,7 +97,12 @@
 
   .wrap{ max-width:1180px; margin-inline:auto; padding-inline:clamp(1.25rem,4vw,2.5rem); }
   section{ padding-block:clamp(3.5rem,7vw,6.5rem); }
-  img{ max-width:100%; }
+  /* Baseline for every image on the site: never overflow its container, and
+     scale height along with width so nothing stretches or distorts on resize.
+     Any image that needs a different fit (product photos, hero photos, avatars,
+     etc.) already sets its own width/height/object-fit and, being a more
+     specific selector, overrides this safely. */
+  img{ max-width:100%; height:auto; display:block; }
   .tabular{ font-variant-numeric:tabular-nums; }
 
   /* ---------- top bar ---------- */
