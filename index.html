@@ -650,6 +650,12 @@
   .auth-msg.show{ display:block; }
   .auth-msg.error{ background:rgba(200,60,50,.1); color:#c0392b; }
   .auth-msg.success{ background:rgba(70,150,90,.1); color:#2e7d4f; }
+  .auth-link-btn{
+    background:none; border:none; padding:0; font-size:.82rem; font-weight:700;
+    color:var(--accent); text-decoration:underline; cursor:pointer; align-self:center;
+    font-family:inherit;
+  }
+  .auth-hint{ font-size:.84rem; color:var(--ink-soft); line-height:1.6; margin:0; }
   .auth-account-view{ display:flex; flex-direction:column; gap:1.1rem; }
   .auth-account-view[hidden]{ display:none; }
   .auth-account-head{ display:flex; align-items:center; gap:.9rem; }
@@ -1706,6 +1712,17 @@
             <input type="password" id="loginPassword" autocomplete="current-password" required minlength="6">
           </div>
           <button class="btn btn-primary auth-submit" id="loginSubmit" type="submit" data-ar="دخول" data-en="Log in">دخول</button>
+          <button type="button" class="auth-link-btn" id="authForgotLink" data-ar="نسيت كلمة المرور؟" data-en="Forgot password?">نسيت كلمة المرور؟</button>
+        </form>
+
+        <form class="auth-panel" id="authForgotForm" hidden>
+          <p class="auth-hint" data-ar="اكتب بريدك الإلكتروني وهنبعتلك رابط لإعادة تعيين كلمة المرور." data-en="Enter your email and we'll send you a link to reset your password.">اكتب بريدك الإلكتروني وهنبعتلك رابط لإعادة تعيين كلمة المرور.</p>
+          <div class="auth-field">
+            <label data-ar="البريد الإلكتروني" data-en="Email">البريد الإلكتروني</label>
+            <input type="email" id="forgotEmail" autocomplete="email" required>
+          </div>
+          <button class="btn btn-primary auth-submit" id="forgotSubmit" type="submit" data-ar="إرسال رابط إعادة التعيين" data-en="Send reset link">إرسال رابط إعادة التعيين</button>
+          <button type="button" class="auth-link-btn" id="authBackToLoginLink" data-ar="رجوع لتسجيل الدخول" data-en="Back to log in">رجوع لتسجيل الدخول</button>
         </form>
 
         <form class="auth-panel" id="signupForm" hidden>
@@ -1741,6 +1758,22 @@
           <button class="btn btn-ghost" id="authAdminLink" type="button" hidden data-ar="لوحة التحكم" data-en="Admin panel">لوحة التحكم</button>
           <button class="btn btn-ghost" id="authLogoutBtn" type="button" data-ar="تسجيل الخروج" data-en="Log out">تسجيل الخروج</button>
         </div>
+      </div>
+
+      <div id="authResetView" hidden>
+        <div class="auth-msg" id="authResetMsg"></div>
+        <form class="auth-panel" id="authResetForm">
+          <p class="auth-hint" data-ar="من فضلك أدخل كلمة مرور جديدة لحسابك." data-en="Please enter a new password for your account.">من فضلك أدخل كلمة مرور جديدة لحسابك.</p>
+          <div class="auth-field">
+            <label data-ar="كلمة المرور الجديدة" data-en="New password">كلمة المرور الجديدة</label>
+            <input type="password" id="resetPassword1" autocomplete="new-password" required minlength="6">
+          </div>
+          <div class="auth-field">
+            <label data-ar="تأكيد كلمة المرور" data-en="Confirm password">تأكيد كلمة المرور</label>
+            <input type="password" id="resetPassword2" autocomplete="new-password" required minlength="6">
+          </div>
+          <button class="btn btn-primary auth-submit" id="resetSubmit" type="submit" data-ar="حفظ كلمة المرور الجديدة" data-en="Save new password">حفظ كلمة المرور الجديدة</button>
+        </form>
       </div>
 
     </div>
@@ -3754,6 +3787,17 @@
   var authAccountEmail = document.getElementById("authAccountEmail");
   var authLogoutBtn = document.getElementById("authLogoutBtn");
   var authAdminLink = document.getElementById("authAdminLink");
+  var authForgotLink = document.getElementById("authForgotLink");
+  var authForgotForm = document.getElementById("authForgotForm");
+  var forgotEmail = document.getElementById("forgotEmail");
+  var forgotSubmit = document.getElementById("forgotSubmit");
+  var authBackToLoginLink = document.getElementById("authBackToLoginLink");
+  var authResetView = document.getElementById("authResetView");
+  var authResetForm = document.getElementById("authResetForm");
+  var authResetMsg = document.getElementById("authResetMsg");
+  var resetPassword1 = document.getElementById("resetPassword1");
+  var resetPassword2 = document.getElementById("resetPassword2");
+  var resetSubmit = document.getElementById("resetSubmit");
   var currentUserRole = null;
 
   var AUTH_TEXT = {
@@ -3764,7 +3808,11 @@
     notConfirmed: { ar:"من فضلك أكّد بريدك الإلكتروني أولًا (تحقق من صندوق الوارد).", en:"Please confirm your email first — check your inbox." },
     alreadyRegistered: { ar:"هذا البريد الإلكتروني مسجّل بالفعل. جرّب تسجيل الدخول.", en:"This email is already registered. Try logging in instead." },
     weakPassword: { ar:"كلمة المرور قصيرة جدًا (٦ أحرف على الأقل).", en:"Password is too short (min 6 characters)." },
-    loggedOut: { ar:"تم تسجيل الخروج.", en:"Logged out." }
+    loggedOut: { ar:"تم تسجيل الخروج.", en:"Logged out." },
+    forgotSent: { ar:"لو البريد ده مسجّل عندنا، هتوصلك رسالة فيها رابط لإعادة تعيين كلمة المرور.", en:"If that email is registered, you'll receive a link to reset your password." },
+    passwordsMismatch: { ar:"كلمتا المرور غير متطابقتين.", en:"Passwords don't match." },
+    resetSuccess: { ar:"تم تغيير كلمة المرور بنجاح.", en:"Your password has been changed successfully." },
+    resetExpired: { ar:"انتهت صلاحية رابط إعادة التعيين. اطلب رابطًا جديدًا وحاول مرة أخرى.", en:"This reset link has expired. Please request a new one and try again." }
   };
   function authText(key){ return AUTH_TEXT[key][state.lang === "ar" ? "ar" : "en"]; }
 
@@ -3792,13 +3840,23 @@
     authTabSignup.classList.toggle("active", !isLogin);
     loginForm.hidden = !isLogin;
     signupForm.hidden = isLogin;
+    authForgotForm.hidden = true;
     clearAuthMsg();
   }
   authTabLogin.addEventListener("click", function(){ setAuthTab("login"); });
   authTabSignup.addEventListener("click", function(){ setAuthTab("signup"); });
 
+  authForgotLink.addEventListener("click", function(){
+    clearAuthMsg();
+    loginForm.hidden = true;
+    signupForm.hidden = true;
+    authForgotForm.hidden = false;
+  });
+  authBackToLoginLink.addEventListener("click", function(){ setAuthTab("login"); });
+
   function openAuthModal(){
     clearAuthMsg();
+    setAuthTab("login");
     authBackdrop.classList.add("open");
     document.body.style.overflow = "hidden";
   }
@@ -3812,7 +3870,20 @@
     if(e.target === authBackdrop) closeAuthModal();
   });
 
+  var inPasswordRecovery = /type=recovery/.test(location.hash) || /type=recovery/.test(location.search);
+
+  function showResetView(){
+    inPasswordRecovery = true;
+    authFormsView.hidden = true;
+    authAccountView.hidden = true;
+    authResetView.hidden = false;
+    authResetMsg.className = "auth-msg";
+    authResetMsg.textContent = "";
+    openAuthModal();
+  }
+
   function renderAuthUI(session){
+    if(inPasswordRecovery) return;
     var user = session && session.user;
     if(user){
       accountBtn.classList.add("logged-in");
@@ -3908,11 +3979,77 @@
     });
   });
 
+  authForgotForm.addEventListener("submit", function(e){
+    e.preventDefault();
+    clearAuthMsg();
+    if(!supabaseClient){ showAuthMsg(authText("unavailable"), "error"); return; }
+    var email = forgotEmail.value.trim();
+    forgotSubmit.disabled = true;
+    supabaseClient.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + window.location.pathname
+    }).then(function(res){
+      forgotSubmit.disabled = false;
+      if(res.error){ showAuthMsg(translateAuthError(res.error), "error"); return; }
+      authForgotForm.reset();
+      showAuthMsg(authText("forgotSent"), "success");
+    }).catch(function(){
+      forgotSubmit.disabled = false;
+      showAuthMsg(authText("networkError"), "error");
+    });
+  });
+
+  authResetForm.addEventListener("submit", function(e){
+    e.preventDefault();
+    authResetMsg.className = "auth-msg";
+    authResetMsg.textContent = "";
+    var p1 = resetPassword1.value;
+    var p2 = resetPassword2.value;
+    if(p1 !== p2){
+      authResetMsg.textContent = authText("passwordsMismatch");
+      authResetMsg.className = "auth-msg show error";
+      return;
+    }
+    if(!supabaseClient){
+      authResetMsg.textContent = authText("unavailable");
+      authResetMsg.className = "auth-msg show error";
+      return;
+    }
+    resetSubmit.disabled = true;
+    supabaseClient.auth.updateUser({ password: p1 }).then(function(res){
+      resetSubmit.disabled = false;
+      if(res.error){
+        authResetMsg.textContent = translateAuthError(res.error) || authText("resetExpired");
+        authResetMsg.className = "auth-msg show error";
+        return;
+      }
+      authResetForm.reset();
+      authResetMsg.textContent = authText("resetSuccess");
+      authResetMsg.className = "auth-msg show success";
+      try{ history.replaceState(null, "", window.location.pathname + window.location.search); }catch(err){}
+      setTimeout(function(){
+        inPasswordRecovery = false;
+        authResetView.hidden = true;
+        supabaseClient.auth.getSession().then(function(sr){
+          renderAuthUI(sr.data && sr.data.session);
+        });
+      }, 1500);
+    }).catch(function(){
+      resetSubmit.disabled = false;
+      authResetMsg.textContent = authText("networkError");
+      authResetMsg.className = "auth-msg show error";
+    });
+  });
+
   if(supabaseClient){
+    if(inPasswordRecovery) showResetView();
     supabaseClient.auth.getSession().then(function(res){
       renderAuthUI(res.data && res.data.session);
     });
     supabaseClient.auth.onAuthStateChange(function(event, session){
+      if(event === "PASSWORD_RECOVERY"){
+        showResetView();
+        return;
+      }
       renderAuthUI(session);
     });
   } else {
