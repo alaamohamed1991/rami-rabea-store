@@ -450,6 +450,11 @@
   }
   .add-btn:hover{ background:var(--ink); color:var(--paper); }
   .add-btn:active{ transform:scale(.9); }
+  .add-btn[disabled]{ cursor:not-allowed; opacity:.45; }
+  .add-btn[disabled]:hover{ background:transparent; color:var(--ink); }
+  .out-of-stock-badge{ background:#c0392b; border-color:#c0392b; color:#fff8f0; }
+  .card.out-of-stock .card-art.photo img{ filter:grayscale(.5); opacity:.72; }
+  .card.out-of-stock .price{ color:var(--ink-faint); }
 
   /* ---------- features ---------- */
   .features{ background:var(--surface); border-block:1px solid var(--line); }
@@ -669,6 +674,16 @@
     font-family:inherit;
   }
   .auth-hint{ font-size:.84rem; color:var(--ink-soft); line-height:1.6; margin:0; }
+  .auth-brand{
+    display:flex; flex-direction:column; align-items:center; text-align:center;
+    gap:.5rem; margin-block-end:1.1rem;
+  }
+  .auth-brand-mark{
+    width:3.4rem; height:3.4rem; border-radius:50%; object-fit:cover;
+    background:var(--brand-dark); box-shadow:0 4px 14px rgba(0,0,0,.15);
+  }
+  .auth-brand .eyebrow{ justify-content:center; }
+  .auth-brand h3{ margin:0; font-size:1.2rem; }
   .auth-account-view{ display:flex; flex-direction:column; gap:1.1rem; }
   .auth-account-view[hidden]{ display:none; }
   .auth-account-head{ display:flex; align-items:center; gap:.9rem; }
@@ -787,6 +802,16 @@
   .admin-form-grid{ display:grid; grid-template-columns:1fr; gap:1rem; }
   @media (min-width:640px){ .admin-form-grid{ grid-template-columns:1fr 1fr; } }
   .admin-form-full{ grid-column:1/-1; }
+  .checkout-summary{
+    display:flex; flex-direction:column; gap:.5rem; padding-block-end:1rem; margin-block-end:.2rem;
+    border-block-end:1px solid var(--line);
+  }
+  .checkout-summary-line{ display:flex; justify-content:space-between; gap:1rem; font-size:.86rem; color:var(--ink-soft); }
+  .checkout-summary-line .name{ color:var(--ink); font-weight:600; }
+  .checkout-summary-total{
+    display:flex; justify-content:space-between; font-weight:800; font-size:1.02rem; color:var(--ink);
+    padding-block-start:.3rem;
+  }
   .admin-image-preview{ width:5.5rem; height:5.5rem; border-radius:.7rem; overflow:hidden; margin-block-start:.6rem; background:var(--surface-2); }
   .admin-image-preview img{ width:100%; height:100%; object-fit:cover; display:block; }
   .admin-tabs{ display:flex; gap:.6rem; flex-wrap:wrap; margin-block-end:1.4rem; padding-block-end:1.2rem; border-block-end:1px solid var(--line); }
@@ -1298,6 +1323,7 @@
                 <th data-ar="الاسم" data-en="Name">الاسم</th>
                 <th data-ar="الفئة" data-en="Category">الفئة</th>
                 <th data-ar="السعر" data-en="Price">السعر</th>
+                <th data-ar="الكمية" data-en="Stock">الكمية</th>
                 <th></th>
               </tr>
             </thead>
@@ -1418,6 +1444,10 @@
               <div class="auth-field">
                 <label data-ar="السعر (ج.م)" data-en="Price (EGP)">السعر (ج.م)</label>
                 <input type="number" id="apPrice" min="0" step="1" required>
+              </div>
+              <div class="auth-field">
+                <label data-ar="الكمية المتاحة" data-en="Quantity in stock">الكمية المتاحة</label>
+                <input type="number" id="apQuantity" min="0" step="1" required value="0">
               </div>
               <div class="auth-field">
                 <label data-ar="وسم (اختياري، عربي)" data-en="Tag (optional, Arabic)">وسم (اختياري، عربي)</label>
@@ -1718,6 +1748,11 @@
     <div class="auth-body">
 
       <div id="authFormsView">
+        <div class="auth-brand">
+          <img src="" id="authBrandMark" alt="" class="auth-brand-mark">
+          <span class="eyebrow" data-ar="مرحبًا بيك" data-en="Welcome">مرحبًا بيك</span>
+          <h3 data-ar="حسابك في رامي ربيع" data-en="Your Rami Rabea account">حسابك في رامي ربيع</h3>
+        </div>
         <div class="auth-tabs" role="tablist">
           <button class="auth-tab active" id="authTabLogin" type="button" data-ar="تسجيل الدخول" data-en="Log in">تسجيل الدخول</button>
           <button class="auth-tab" id="authTabSignup" type="button" data-ar="حساب جديد" data-en="Sign up">حساب جديد</button>
@@ -1784,6 +1819,11 @@
       </div>
 
       <div id="authResetView" hidden>
+        <div class="auth-brand">
+          <img src="" id="authResetBrandMark" alt="" class="auth-brand-mark">
+          <span class="eyebrow" data-ar="إعادة تعيين كلمة المرور" data-en="Reset password">إعادة تعيين كلمة المرور</span>
+          <h3 data-ar="كلمة مرور جديدة" data-en="Choose a new password">كلمة مرور جديدة</h3>
+        </div>
         <div class="auth-msg" id="authResetMsg"></div>
         <form class="auth-panel" id="authResetForm">
           <p class="auth-hint" data-ar="من فضلك أدخل كلمة مرور جديدة لحسابك." data-en="Please enter a new password for your account.">من فضلك أدخل كلمة مرور جديدة لحسابك.</p>
@@ -1799,6 +1839,47 @@
         </form>
       </div>
 
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="checkoutBackdrop">
+  <div class="modal-box auth-box admin-form-box" role="dialog" aria-label="Checkout">
+    <button class="icon-btn modal-close" id="checkoutClose" type="button" aria-label="Close">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+    <div class="auth-body">
+      <div class="admin-form-head">
+        <span class="eyebrow" data-ar="تأكيد الطلب" data-en="Confirm order">تأكيد الطلب</span>
+        <h3 data-ar="بيانات الشحن" data-en="Shipping details">بيانات الشحن</h3>
+      </div>
+      <div class="auth-msg" id="checkoutMsg"></div>
+      <div class="checkout-summary" id="checkoutSummary"></div>
+      <form id="checkoutForm">
+        <div class="admin-form-grid">
+          <div class="auth-field admin-form-full">
+            <label data-ar="الاسم بالكامل" data-en="Full name">الاسم بالكامل</label>
+            <input type="text" id="checkoutName" autocomplete="name" required>
+          </div>
+          <div class="auth-field">
+            <label data-ar="رقم الموبايل" data-en="Phone number">رقم الموبايل</label>
+            <input type="tel" id="checkoutPhone" autocomplete="tel" required>
+          </div>
+          <div class="auth-field">
+            <label data-ar="المدينة (اختياري)" data-en="City (optional)">المدينة (اختياري)</label>
+            <input type="text" id="checkoutCity" autocomplete="address-level2">
+          </div>
+          <div class="auth-field admin-form-full">
+            <label data-ar="العنوان بالتفصيل" data-en="Full address">العنوان بالتفصيل</label>
+            <input type="text" id="checkoutAddress" autocomplete="street-address" required>
+          </div>
+          <div class="auth-field admin-form-full">
+            <label data-ar="ملاحظات (اختياري)" data-en="Notes (optional)">ملاحظات (اختياري)</label>
+            <input type="text" id="checkoutNotes">
+          </div>
+        </div>
+        <button class="btn btn-primary auth-submit" id="checkoutSubmit" type="submit" data-ar="تأكيد الطلب" data-en="Place order">تأكيد الطلب</button>
+      </form>
     </div>
   </div>
 </div>
@@ -1929,6 +2010,8 @@
   // truth for pulling those two pieces back apart everywhere else in the app.
   function catIsSun(cat){ return /_sun$/.test(cat || ""); }
   function catSub(cat){ return (cat || "").replace(/_sun$/, ""); }
+  /* A product with no quantity field (demo/offline data) is treated as always in stock. */
+  function isOutOfStock(p){ return !!p && typeof p.quantity === "number" && p.quantity <= 0; }
 
   /* ---------------- lang ---------------- */
   function applyLang(){
@@ -1987,14 +2070,17 @@
 
   /* ---------------- render products ---------------- */
   function productCardHTML(p){
-    var tagHtml = p.tag ? '<span class="card-tag">'+p.tag[state.lang]+'</span>' : "";
+    var oos = isOutOfStock(p);
+    var tagHtml = oos
+      ? '<span class="card-tag out-of-stock-badge">'+(state.lang==="ar"?"غير متوفر":"Out of stock")+'</span>'
+      : (p.tag ? '<span class="card-tag">'+p.tag[state.lang]+'</span>' : "");
     var catLabel = catLabels[p.cat][state.lang];
     var photo = PRODUCT_IMAGES[p.id];
     var media = photo
       ? '<img src="'+photo+'" alt="'+p.name[state.lang]+'" loading="lazy">'
       : glassesSVG(p.shape, p.color);
     return '' +
-      '<article class="card" data-id="'+p.id+'">' +
+      '<article class="card'+(oos?' out-of-stock':'')+'" data-id="'+p.id+'">' +
         '<div class="card-art'+(photo?' photo':'')+'" style="'+(photo?'':'background:color-mix(in srgb, '+p.color+' 10%, var(--surface-2));')+'">' +
           tagHtml + media +
         '</div>' +
@@ -2004,9 +2090,13 @@
           '<p style="font-size:.82rem;">'+p.sub[state.lang]+'</p>' +
           '<div class="card-foot">' +
             '<span class="price tabular">'+p.price+' <small>'+(state.lang==="ar"?"ج.م":"EGP")+'</small></span>' +
-            '<button class="add-btn" data-add="'+p.id+'" aria-label="Add to cart">' +
-              '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>' +
-            '</button>' +
+            (oos
+              ? '<button class="add-btn" disabled aria-label="Out of stock" aria-disabled="true">' +
+                  '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>' +
+                '</button>'
+              : '<button class="add-btn" data-add="'+p.id+'" aria-label="Add to cart">' +
+                  '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>' +
+                '</button>') +
           '</div>' +
         '</div>' +
       '</article>';
@@ -2054,6 +2144,11 @@
   }
 
   function addToCart(id, qty){
+    var p = products.find(function(pr){ return pr.id === id; });
+    if(isOutOfStock(p)){
+      showToast(state.lang==="ar" ? "المنتج غير متوفر حاليًا" : "This product is currently out of stock");
+      return;
+    }
     qty = qty || 1;
     state.cart[id] = (state.cart[id] || 0) + qty;
     persist();
@@ -2258,15 +2353,152 @@
     applyLang();
   });
 
-  /* ---------------- checkout + newsletter (demo only) ---------------- */
-  document.getElementById("checkoutBtn").addEventListener("click", function(){
-    if(Object.keys(state.cart).length === 0) return;
-    showToast(t[state.lang].checkout);
-    state.cart = {};
-    persist();
-    renderCart();
-    setTimeout(closeCart, 900);
+  /* ---------------- checkout ---------------- */
+  var checkoutBackdrop = document.getElementById("checkoutBackdrop");
+  var checkoutClose = document.getElementById("checkoutClose");
+  var checkoutForm = document.getElementById("checkoutForm");
+  var checkoutMsg = document.getElementById("checkoutMsg");
+  var checkoutSummaryEl = document.getElementById("checkoutSummary");
+  var checkoutName = document.getElementById("checkoutName");
+  var checkoutPhone = document.getElementById("checkoutPhone");
+  var checkoutCity = document.getElementById("checkoutCity");
+  var checkoutAddress = document.getElementById("checkoutAddress");
+  var checkoutNotes = document.getElementById("checkoutNotes");
+  var checkoutSubmit = document.getElementById("checkoutSubmit");
+
+  function showCheckoutMsg(text, type){
+    checkoutMsg.textContent = text;
+    checkoutMsg.className = "auth-msg show " + type;
+  }
+  function clearCheckoutMsg(){
+    checkoutMsg.className = "auth-msg";
+    checkoutMsg.textContent = "";
+  }
+
+  function cartLines(){
+    return Object.keys(state.cart).map(function(id){
+      var p = products.find(function(pr){ return pr.id === parseInt(id,10); });
+      return { product: p, qty: state.cart[id] };
+    }).filter(function(l){ return !!l.product; });
+  }
+
+  function renderCheckoutSummary(){
+    var lines = cartLines();
+    var total = 0;
+    var html = lines.map(function(l){
+      var lineTotal = l.product.price * l.qty;
+      total += lineTotal;
+      return '<div class="checkout-summary-line"><span class="name">'+l.product.name[state.lang]+' × '+l.qty+'</span><span class="tabular">'+lineTotal+' '+(state.lang==="ar"?"ج.م":"EGP")+'</span></div>';
+    }).join("");
+    html += '<div class="checkout-summary-total"><span>'+(state.lang==="ar"?"الإجمالي":"Total")+'</span><span class="tabular">'+total+' '+(state.lang==="ar"?"ج.م":"EGP")+'</span></div>';
+    checkoutSummaryEl.innerHTML = html;
+    return total;
+  }
+
+  function openCheckoutModal(){
+    renderCheckoutSummary();
+    clearCheckoutMsg();
+    var meta = (currentUser && currentUser.user_metadata) || {};
+    checkoutName.value = meta.full_name || "";
+    checkoutPhone.value = meta.phone || "";
+    checkoutBackdrop.classList.add("open");
+    document.body.style.overflow = "hidden";
+  }
+  function closeCheckoutModal(){
+    checkoutBackdrop.classList.remove("open");
+    document.body.style.overflow = "";
+  }
+  checkoutClose.addEventListener("click", closeCheckoutModal);
+  checkoutBackdrop.addEventListener("click", function(e){
+    if(e.target === checkoutBackdrop) closeCheckoutModal();
   });
+
+  document.getElementById("checkoutBtn").addEventListener("click", function(){
+    var lines = cartLines();
+    if(!lines.length) return;
+    var oosLines = lines.filter(function(l){ return isOutOfStock(l.product); });
+    if(oosLines.length){
+      showToast(state.lang==="ar" ? "فيه منتجات في سلتك بقت غير متوفرة — من فضلك احذفها من السلة" : "Some items in your cart are now out of stock — please remove them");
+      return;
+    }
+    if(!supabaseClient){
+      showToast(authText("unavailable"));
+      return;
+    }
+    if(!currentUser){
+      closeCart();
+      openAuthModal();
+      showAuthMsg(state.lang==="ar" ? "سجّل دخولك الأول عشان تقدر تكمل طلبك" : "Please log in first to complete your order", "error");
+      return;
+    }
+    closeCart();
+    openCheckoutModal();
+  });
+
+  checkoutForm.addEventListener("submit", function(e){
+    e.preventDefault();
+    clearCheckoutMsg();
+    var lines = cartLines();
+    if(!lines.length){ closeCheckoutModal(); return; }
+    if(!supabaseClient){ showCheckoutMsg(authText("unavailable"), "error"); return; }
+    if(!currentUser){ showCheckoutMsg(state.lang==="ar" ? "لازم تسجل الدخول الأول" : "Please log in first", "error"); return; }
+    var oosLines = lines.filter(function(l){ return isOutOfStock(l.product); });
+    if(oosLines.length){
+      showCheckoutMsg(state.lang==="ar" ? "فيه منتجات في سلتك بقت غير متوفرة — من فضلك احذفها من السلة" : "Some items in your cart are now out of stock — please remove them", "error");
+      return;
+    }
+
+    var fullName = checkoutName.value.trim();
+    var phone = checkoutPhone.value.trim();
+    var address = checkoutAddress.value.trim();
+    var city = checkoutCity.value.trim();
+    var notes = checkoutNotes.value.trim();
+    var total = lines.reduce(function(sum,l){ return sum + l.product.price*l.qty; }, 0);
+
+    checkoutSubmit.disabled = true;
+    supabaseClient.from("orders").insert({
+      user_id: currentUser.id,
+      status: "pending",
+      total: total,
+      full_name: fullName,
+      phone: phone,
+      address: address,
+      city: city || null,
+      notes: notes || null
+    }).select().single().then(function(res){
+      if(res.error) throw res.error;
+      var order = res.data;
+      var itemRows = lines.map(function(l){
+        return {
+          order_id: order.id,
+          product_id: l.product.id,
+          product_name: l.product.name[state.lang],
+          unit_price: l.product.price,
+          quantity: l.qty,
+          line_total: l.product.price * l.qty
+        };
+      });
+      return supabaseClient.from("order_items").insert(itemRows).then(function(res2){
+        if(res2.error) throw res2.error;
+        return Promise.all(lines.map(function(l){
+          return supabaseClient.rpc("decrement_product_stock", { p_product_id: l.product.id, p_qty: l.qty });
+        }));
+      });
+    }).then(function(){
+      checkoutSubmit.disabled = false;
+      state.cart = {};
+      persist();
+      renderCart();
+      closeCheckoutModal();
+      checkoutForm.reset();
+      showToast(state.lang==="ar" ? "تم إرسال طلبك بنجاح!" : "Your order has been placed!");
+      loadProducts();
+    }).catch(function(err){
+      checkoutSubmit.disabled = false;
+      showCheckoutMsg(translateAuthError(err), "error");
+    });
+  });
+
   document.getElementById("newsForm").addEventListener("submit", function(e){
     e.preventDefault();
     showToast(t[state.lang].subscribed);
@@ -2302,7 +2534,10 @@
       : glassesSVG(p.shape, p.color);
     qvMedia.style.background = photo ? "" : "color-mix(in srgb, "+p.color+" 10%, var(--surface-2))";
     qvMedia.innerHTML = media;
-    var tagHtml = p.tag ? '<span class="card-tag" style="position:static;display:inline-flex;align-self:flex-start;">'+p.tag[state.lang]+'</span>' : "";
+    var oos = isOutOfStock(p);
+    var tagHtml = oos
+      ? '<span class="card-tag out-of-stock-badge" style="position:static;display:inline-flex;align-self:flex-start;">'+(state.lang==="ar"?"غير متوفر":"Out of stock")+'</span>'
+      : (p.tag ? '<span class="card-tag" style="position:static;display:inline-flex;align-self:flex-start;">'+p.tag[state.lang]+'</span>' : "");
     qvBody.innerHTML =
       tagHtml +
       '<span class="cat">'+catLabels[p.cat][state.lang]+'</span>' +
@@ -2310,11 +2545,12 @@
       '<p class="desc">'+p.sub[state.lang]+'</p>' +
       '<div class="qv-price-row">' +
         '<span class="qv-price tabular">'+p.price+' <small>'+(state.lang==="ar"?"ج.م":"EGP")+'</small></span>' +
+        (oos ? '' :
         '<div class="qv-qty">' +
           '<button type="button" id="qvMinus" aria-label="-">−</button>' +
           '<span class="tabular" id="qvQtyVal">'+qvQty+'</span>' +
           '<button type="button" id="qvPlus" aria-label="+">+</button>' +
-        '</div>' +
+        '</div>') +
       '</div>' +
       '<div class="qv-actions">' +
         (photo ?
@@ -2323,20 +2559,24 @@
             '<span data-ar="جرّب بالكاميرا" data-en="Try with camera">'+(state.lang==="ar"?"جرّب بالكاميرا":"Try with camera")+'</span>' +
           '</button>' : ''
         ) +
-        '<button class="btn btn-primary" id="qvAdd" type="button">'+(state.lang==="ar"?"أضف إلى السلة":"Add to cart")+'</button>' +
+        (oos
+          ? '<button class="btn btn-primary" type="button" disabled style="opacity:.55;cursor:not-allowed;">'+(state.lang==="ar"?"غير متوفر حاليًا":"Currently unavailable")+'</button>'
+          : '<button class="btn btn-primary" id="qvAdd" type="button">'+(state.lang==="ar"?"أضف إلى السلة":"Add to cart")+'</button>') +
       '</div>';
 
-    document.getElementById("qvMinus").addEventListener("click", function(){
-      qvQty = Math.max(1, qvQty - 1);
-      document.getElementById("qvQtyVal").textContent = qvQty;
-    });
-    document.getElementById("qvPlus").addEventListener("click", function(){
-      qvQty = Math.min(9, qvQty + 1);
-      document.getElementById("qvQtyVal").textContent = qvQty;
-    });
-    document.getElementById("qvAdd").addEventListener("click", function(){
-      addToCart(p.id, qvQty);
-    });
+    if(!oos){
+      document.getElementById("qvMinus").addEventListener("click", function(){
+        qvQty = Math.max(1, qvQty - 1);
+        document.getElementById("qvQtyVal").textContent = qvQty;
+      });
+      document.getElementById("qvPlus").addEventListener("click", function(){
+        qvQty = Math.min(9, qvQty + 1);
+        document.getElementById("qvQtyVal").textContent = qvQty;
+      });
+      document.getElementById("qvAdd").addEventListener("click", function(){
+        addToCart(p.id, qvQty);
+      });
+    }
     var tryBtn = document.getElementById("qvTryOn");
     if(tryBtn){
       tryBtn.addEventListener("click", function(){
@@ -3395,6 +3635,7 @@
     if(e.key !== "Escape") return;
     if(tryonBackdrop.classList.contains("open")) closeTryOn();
     else if(qvBackdrop.classList.contains("open")) closeQuickView();
+    else if(document.getElementById("checkoutBackdrop").classList.contains("open")) closeCheckoutModal();
     else if(document.getElementById("authBackdrop").classList.contains("open")) closeAuthModal();
     else if(document.getElementById("adminFormBackdrop") && document.getElementById("adminFormBackdrop").classList.contains("open")) closeAdminForm();
   });
@@ -3413,6 +3654,7 @@
     if(saleImg) saleImg.src = HERO_IMG_SALE;
     if(lensImg) lensImg.src = HERO_IMG_LENS;
     document.querySelectorAll(".hero-slide-badge img").forEach(function(img){ img.src = HERO_LOGO_MARK; });
+    document.querySelectorAll(".auth-brand-mark").forEach(function(img){ img.src = HERO_LOGO_MARK; });
 
     var slides = Array.prototype.slice.call(document.querySelectorAll(".hero-slide"));
     var dots = Array.prototype.slice.call(document.querySelectorAll(".hero-dot"));
@@ -3636,8 +3878,12 @@
     document.getElementById("productName").textContent = p.name[state.lang];
     document.getElementById("productSub").textContent = p.sub[state.lang];
     document.getElementById("productPrice").innerHTML = fmtPrice(p.price);
+    var oos = isOutOfStock(p);
     var tagEl = document.getElementById("productTag");
-    if(p.tag){ tagEl.textContent = p.tag[state.lang]; tagEl.hidden = false; } else { tagEl.hidden = true; }
+    tagEl.classList.toggle("out-of-stock-badge", oos);
+    if(oos){ tagEl.textContent = state.lang==="ar" ? "غير متوفر" : "Out of stock"; tagEl.hidden = false; }
+    else if(p.tag){ tagEl.textContent = p.tag[state.lang]; tagEl.hidden = false; }
+    else { tagEl.hidden = true; }
 
     var crumbCat = document.getElementById("productBreadcrumbCat");
     crumbCat.textContent = categoryLabel(mainFilter, sub);
@@ -3671,6 +3917,8 @@
 
     document.getElementById("ppQtyVal").textContent = pageProduct.qty;
     updateProductTotal();
+    var qtyBox = document.getElementById("productQtyBox");
+    if(qtyBox) qtyBox.style.visibility = oos ? "hidden" : "";
 
     var shapeSpec = shapeSizeSpecs[p.shape] || {lens:"52", temple:"140"};
     var colorName = colorNames[p.color] ? colorNames[p.color][state.lang] : "—";
@@ -3694,9 +3942,22 @@
     tryBtn.style.display = photo ? "" : "none";
     tryBtn.onclick = function(){ openTryOn(p); };
 
-    document.getElementById("ppAdd").onclick = function(){
-      addToCart(p.id, pageProduct.qty);
-    };
+    var ppAddBtn = document.getElementById("ppAdd");
+    if(oos){
+      ppAddBtn.disabled = true;
+      ppAddBtn.style.opacity = ".55";
+      ppAddBtn.style.cursor = "not-allowed";
+      ppAddBtn.textContent = state.lang==="ar" ? "غير متوفر حاليًا" : "Currently unavailable";
+      ppAddBtn.onclick = null;
+    } else {
+      ppAddBtn.disabled = false;
+      ppAddBtn.style.opacity = "";
+      ppAddBtn.style.cursor = "";
+      ppAddBtn.textContent = state.lang==="ar" ? "أضف إلى السلة" : "Add to cart";
+      ppAddBtn.onclick = function(){
+        addToCart(p.id, pageProduct.qty);
+      };
+    }
 
     var related = products.filter(function(x){ return x.cat === p.cat && x.id !== p.id; }).slice(0,4);
     if(related.length < 4){
@@ -3822,6 +4083,7 @@
   var resetPassword2 = document.getElementById("resetPassword2");
   var resetSubmit = document.getElementById("resetSubmit");
   var currentUserRole = null;
+  var currentUser = null;
 
   var AUTH_TEXT = {
     checkEmail: { ar:"تم إنشاء الحساب! افتح بريدك الإلكتروني واضغط على رابط التأكيد قبل تسجيل الدخول.", en:"Account created! Check your email and confirm it before logging in." },
@@ -3908,6 +4170,7 @@
   function renderAuthUI(session){
     if(inPasswordRecovery) return;
     var user = session && session.user;
+    currentUser = user || null;
     if(user){
       accountBtn.classList.add("logged-in");
       authFormsView.hidden = true;
@@ -4085,7 +4348,7 @@
     if(!supabaseClient) return;
     supabaseClient
       .from("products")
-      .select("id,name_ar,name_en,sub_ar,sub_en,category,shape,color_hex,price,tag_ar,tag_en,product_images(url,sort_order)")
+      .select("id,name_ar,name_en,sub_ar,sub_en,category,shape,color_hex,price,quantity,tag_ar,tag_en,product_images(url,sort_order)")
       .eq("is_active", true)
       .order("id", { ascending:true })
       .then(function(res){
@@ -4097,6 +4360,7 @@
             id: row.id,
             cat: row.category,
             price: row.price,
+            quantity: (typeof row.quantity === "number") ? row.quantity : 0,
             tag: row.tag_ar ? { ar: row.tag_ar, en: row.tag_en || row.tag_ar } : null,
             name: { ar: row.name_ar, en: row.name_en || row.name_ar },
             sub: { ar: row.sub_ar || "", en: row.sub_en || row.sub_ar || "" },
@@ -4244,9 +4508,9 @@
   function renderAdminProducts(){
     if(!adminTableBody) return;
     var loadingText = state.lang === "ar" ? "جارِ التحميل..." : "Loading...";
-    adminTableBody.innerHTML = '<tr><td colspan="5" class="admin-empty">'+loadingText+'</td></tr>';
+    adminTableBody.innerHTML = '<tr><td colspan="6" class="admin-empty">'+loadingText+'</td></tr>';
     if(!supabaseClient){
-      adminTableBody.innerHTML = '<tr><td colspan="5" class="admin-empty">'+authText("unavailable")+'</td></tr>';
+      adminTableBody.innerHTML = '<tr><td colspan="6" class="admin-empty">'+authText("unavailable")+'</td></tr>';
       return;
     }
     supabaseClient
@@ -4255,14 +4519,14 @@
       .order("id", { ascending:true })
       .then(function(res){
         if(res.error){
-          adminTableBody.innerHTML = '<tr><td colspan="5" class="admin-empty">'+translateAuthError(res.error)+'</td></tr>';
+          adminTableBody.innerHTML = '<tr><td colspan="6" class="admin-empty">'+translateAuthError(res.error)+'</td></tr>';
           return;
         }
         adminProductRowsCache = res.data || [];
         renderAdminProductRows();
       })
       .catch(function(){
-        adminTableBody.innerHTML = '<tr><td colspan="5" class="admin-empty">'+authText("networkError")+'</td></tr>';
+        adminTableBody.innerHTML = '<tr><td colspan="6" class="admin-empty">'+authText("networkError")+'</td></tr>';
       });
   }
 
@@ -4274,19 +4538,24 @@
       return catSub(row.category) === adminActiveSub;
     });
     if(!rows.length){
-      adminTableBody.innerHTML = '<tr><td colspan="5" class="admin-empty">'+(state.lang==="ar"?"لا توجد منتجات بعد":"No products yet")+'</td></tr>';
+      adminTableBody.innerHTML = '<tr><td colspan="6" class="admin-empty">'+(state.lang==="ar"?"لا توجد منتجات بعد":"No products yet")+'</td></tr>';
       return;
     }
     adminTableBody.innerHTML = rows.map(function(row){
       var imgs = (row.product_images||[]).slice().sort(function(a,b){ return (a.sort_order||0)-(b.sort_order||0); });
       var photo = imgs.length ? imgs[0].url : "";
       var name = state.lang === "ar" ? row.name_ar : (row.name_en || row.name_ar);
+      var qty = (typeof row.quantity === "number") ? row.quantity : 0;
+      var qtyHtml = qty > 0
+        ? '<span class="tabular">'+qty+'</span>'
+        : '<span class="admin-active-badge off">'+(state.lang==="ar"?"نفدت الكمية":"Out of stock")+'</span>';
       return '' +
         '<tr>' +
           '<td><div class="admin-thumb">'+(photo ? '<img src="'+photo+'" alt="">' : '')+'</div></td>' +
           '<td>'+name+'</td>' +
           '<td>'+adminCategoryLabel(row.category)+'</td>' +
           '<td class="tabular">'+row.price+'</td>' +
+          '<td>'+qtyHtml+'</td>' +
           '<td><div class="admin-row-actions">' +
             '<button type="button" data-edit="'+row.id+'">'+(state.lang==="ar"?"تعديل":"Edit")+'</button>' +
             (isAdminUser() ? '<button type="button" class="admin-delete" data-delete="'+row.id+'">'+(state.lang==="ar"?"حذف":"Delete")+'</button>' : '') +
@@ -4323,6 +4592,7 @@
       document.getElementById("apShape").value = row.shape || "aviator";
       document.getElementById("apColor").value = row.color_hex || "#2b2b2b";
       document.getElementById("apPrice").value = row.price || 0;
+      document.getElementById("apQuantity").value = (typeof row.quantity === "number") ? row.quantity : 0;
       document.getElementById("apTagAr").value = row.tag_ar || "";
       document.getElementById("apTagEn").value = row.tag_en || "";
       if(imgs.length){
@@ -4333,6 +4603,7 @@
       adminEditingId = null;
       adminFormTitle.textContent = state.lang === "ar" ? "إضافة منتج" : "Add product";
       document.getElementById("apColor").value = "#2b2b2b";
+      document.getElementById("apQuantity").value = 0;
       var presetCat = adminActiveSub === "all" ? "men" : adminActiveSub;
       if(adminActiveTab === "sun") presetCat += "_sun";
       document.getElementById("apCategory").value = presetCat;
@@ -4392,6 +4663,7 @@
         shape: document.getElementById("apShape").value,
         color_hex: document.getElementById("apColor").value.trim() || "#2b2b2b",
         price: parseFloat(document.getElementById("apPrice").value) || 0,
+        quantity: Math.max(0, parseInt(document.getElementById("apQuantity").value, 10) || 0),
         tag_ar: document.getElementById("apTagAr").value.trim() || null,
         tag_en: document.getElementById("apTagEn").value.trim() || null
       };
