@@ -179,6 +179,11 @@
     width:4.6rem; height:4.6rem; border-radius:50%; object-fit:cover; flex:none;
     border:1px solid var(--line); background:var(--surface-2);
   }
+  .mega-gender-item .avatar-icon{
+    width:4.6rem; height:4.6rem; border-radius:50%; flex:none;
+    border:1px solid var(--line); background:var(--accent-soft); color:var(--accent);
+    display:flex; align-items:center; justify-content:center;
+  }
   .mega-gender .mega-gender-item span{
     font-size:.85rem; font-weight:700; color:var(--ink); line-height:1.35; transition:color .12s;
   }
@@ -238,7 +243,8 @@
 
   .hero-slide-bg{ position:absolute; inset:0; z-index:0; }
   .hero-slide-sun .hero-slide-bg{ background:#e7d8bd; }
-  .hero-slide-rx .hero-slide-bg{ background:var(--brand-dark); }
+  .hero-slide-rx .hero-slide-bg,
+  .hero-slide-dynamic .hero-slide-bg{ background:var(--brand-dark); }
   .hero-slide-photo{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center; display:block; }
   /* The rx-slide photo is a 3:2 portrait crammed into a much wider, shorter hero
      band, so a center crop keeps only the vertical middle of the frame and cuts
@@ -276,11 +282,11 @@
      box instead of letting justify-content push it flush to the physical right.
      Zero them here so the slide copy actually sits flush right in both directions. */
   .hero-slide-copy.wrap{ margin-inline:0; }
-  .hero-slide-sun .eyebrow, .hero-slide-rx .eyebrow{ color:var(--amber); }
-  .hero-slide-sun .eyebrow::before, .hero-slide-rx .eyebrow::before{ background:var(--amber); }
-  .hero-slide-sun h1, .hero-slide-rx h1{ color:var(--brand-cream); }
-  .hero-slide-sun .lede, .hero-slide-rx .lede{ color:color-mix(in srgb, var(--brand-cream) 78%, transparent); }
-  .hero-slide-sun .btn-primary, .hero-slide-rx .btn-primary{ background:var(--amber); color:var(--amber-ink); border-color:var(--amber); }
+  .hero-slide-sun .eyebrow, .hero-slide-rx .eyebrow, .hero-slide-dynamic .eyebrow{ color:var(--amber); }
+  .hero-slide-sun .eyebrow::before, .hero-slide-rx .eyebrow::before, .hero-slide-dynamic .eyebrow::before{ background:var(--amber); }
+  .hero-slide-sun h1, .hero-slide-rx h1, .hero-slide-dynamic h1{ color:var(--brand-cream); }
+  .hero-slide-sun .lede, .hero-slide-rx .lede, .hero-slide-dynamic .lede{ color:color-mix(in srgb, var(--brand-cream) 78%, transparent); }
+  .hero-slide-sun .btn-primary, .hero-slide-rx .btn-primary, .hero-slide-dynamic .btn-primary{ background:var(--amber); color:var(--amber-ink); border-color:var(--amber); }
 
   .hero-slide-copy{ position:relative; z-index:2; padding-block:3rem; pointer-events:none; }
   .hero-slide-copy .inner{ max-width:30rem; pointer-events:auto; }
@@ -294,7 +300,8 @@
      a blurred dark backdrop, so it stays legible while the photo underneath —
      including anyone on the right side of the frame — stays visible. */
   .hero-slide-sun .hero-slide-copy .inner,
-  .hero-slide-rx .hero-slide-copy .inner{
+  .hero-slide-rx .hero-slide-copy .inner,
+  .hero-slide-dynamic .hero-slide-copy .inner{
     background:rgba(20,23,15,.46);
     backdrop-filter:blur(10px) saturate(1.1);
     -webkit-backdrop-filter:blur(10px) saturate(1.1);
@@ -350,7 +357,7 @@
     font-family:'Markazi Text',serif; font-weight:700; font-size:1.5rem; letter-spacing:.01em;
     color:var(--ink);
   }
-  .hero-slide-rx .hero-slide-wordmark{ color:var(--brand-cream); }
+  .hero-slide-rx .hero-slide-wordmark, .hero-slide-dynamic .hero-slide-wordmark{ color:var(--brand-cream); }
   [dir="rtl"] .hero-slide-wordmark{ unicode-bidi:plaintext; }
 
   .hero-slide-badge{
@@ -359,7 +366,7 @@
     border:1px solid color-mix(in srgb, var(--ink) 20%, transparent);
     background:color-mix(in srgb, var(--paper) 70%, transparent); backdrop-filter:blur(4px);
   }
-  .hero-slide-rx .hero-slide-badge{ border-color:rgba(246,238,227,0.3); background:rgba(246,238,227,0.12); }
+  .hero-slide-rx .hero-slide-badge, .hero-slide-dynamic .hero-slide-badge{ border-color:rgba(246,238,227,0.3); background:rgba(246,238,227,0.12); }
   .hero-slide-badge img{ width:100%; height:100%; object-fit:cover; display:block; }
 
   .hero-arrow{
@@ -762,6 +769,20 @@
   .admin-form-full{ grid-column:1/-1; }
   .admin-image-preview{ width:5.5rem; height:5.5rem; border-radius:.7rem; overflow:hidden; margin-block-start:.6rem; background:var(--surface-2); }
   .admin-image-preview img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .admin-tabs{ display:flex; gap:.6rem; flex-wrap:wrap; margin-block-end:1.4rem; padding-block-end:1.2rem; border-block-end:1px solid var(--line); }
+  .admin-tab-panel[hidden]{ display:none; }
+  .admin-subtabs{ display:flex; gap:.5rem; flex-wrap:wrap; margin-block-end:1.2rem; }
+  .admin-role-select{ border:1px solid var(--line); background:var(--surface); border-radius:.5rem; padding:.4rem .6rem; font-size:.82rem; font-family:inherit; color:var(--ink); }
+  .admin-role-select:disabled{ opacity:.6; }
+  .admin-note{ font-size:.82rem; color:var(--ink-faint); line-height:1.7; margin-block-end:1.2rem; }
+  .admin-order-btns{ display:flex; flex-direction:column; gap:.15rem; }
+  .admin-order-btns button{ border:1px solid var(--line); background:transparent; border-radius:.35rem; width:1.6rem; height:1.3rem; font-size:.7rem; line-height:1; color:var(--ink-soft); }
+  .admin-order-btns button:hover{ border-color:var(--ink); color:var(--ink); }
+  .admin-active-badge{ font-size:.68rem; font-weight:700; padding:.2rem .55rem; border-radius:999px; }
+  .admin-active-badge.on{ background:rgba(70,150,90,.12); color:#2e7d4f; }
+  .admin-active-badge.off{ background:rgba(120,120,120,.12); color:var(--ink-faint); }
+  .checkbox-label{ display:flex; align-items:center; gap:.55rem; font-size:.86rem; font-weight:600; color:var(--ink); cursor:pointer; }
+  .checkbox-label input{ width:1.1rem; height:1.1rem; accent-color:var(--accent); }
 
   .btn-tryon{
     background:var(--brand-dark); color:var(--brand-cream); border-color:var(--brand-dark);
@@ -1014,6 +1035,7 @@
             <button class="filter-btn sub active" data-subfilter="all" data-ar="الكل" data-en="All">الكل</button>
             <button class="filter-btn sub" data-subfilter="men" data-ar="رجالي" data-en="Men">رجالي</button>
             <button class="filter-btn sub" data-subfilter="women" data-ar="حريمي" data-en="Women">حريمي</button>
+            <button class="filter-btn sub" data-subfilter="kids" data-ar="أطفال" data-en="Kids">أطفال</button>
           </div>
         </div>
       </div>
@@ -1225,26 +1247,95 @@
       <div class="admin-head">
         <div>
           <span class="eyebrow" data-ar="لوحة التحكم" data-en="Admin panel">لوحة التحكم</span>
-          <h2 data-ar="إدارة المنتجات" data-en="Manage products">إدارة المنتجات</h2>
+          <h2 id="adminPageTitle" data-ar="النظارات الطبية" data-en="Prescription glasses">النظارات الطبية</h2>
         </div>
         <button class="btn btn-primary" id="adminAddBtn" type="button" data-ar="+ إضافة منتج" data-en="+ Add product">+ إضافة منتج</button>
       </div>
 
+      <div class="admin-tabs" id="adminTabs">
+        <button class="filter-btn active" type="button" data-admin-tab="rx" data-ar="النظارات الطبية" data-en="Prescription glasses">النظارات الطبية</button>
+        <button class="filter-btn" type="button" data-admin-tab="sun" data-ar="النظارات الشمسية" data-en="Sunglasses">النظارات الشمسية</button>
+        <button class="filter-btn" type="button" data-admin-tab="lenses" data-ar="العدسات الطبية" data-en="Contact lenses">العدسات الطبية</button>
+        <button class="filter-btn" type="button" data-admin-tab="slider" data-ar="السلايدر" data-en="Homepage slider">السلايدر</button>
+        <button class="filter-btn" type="button" id="adminUsersTabBtn" data-admin-tab="users" data-ar="المستخدمون والصلاحيات" data-en="Users &amp; permissions">المستخدمون والصلاحيات</button>
+      </div>
+
       <div class="admin-msg" id="adminMsg"></div>
 
-      <div class="admin-table-wrap">
-        <table class="admin-table" id="adminTable">
-          <thead>
-            <tr>
-              <th data-ar="الصورة" data-en="Photo">الصورة</th>
-              <th data-ar="الاسم" data-en="Name">الاسم</th>
-              <th data-ar="الفئة" data-en="Category">الفئة</th>
-              <th data-ar="السعر" data-en="Price">السعر</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="adminTableBody"></tbody>
-        </table>
+      <!-- Prescription + sunglasses share this one panel; data-admin-tab decides which categories it filters to. -->
+      <div class="admin-tab-panel" id="adminPanelProducts" data-admin-panel="rx,sun">
+        <div class="admin-subtabs" id="adminProductSubtabs">
+          <button class="filter-btn sub active" type="button" data-admin-sub="all" data-ar="الكل" data-en="All">الكل</button>
+          <button class="filter-btn sub" type="button" data-admin-sub="men" data-ar="رجالي" data-en="Men">رجالي</button>
+          <button class="filter-btn sub" type="button" data-admin-sub="women" data-ar="حريمي" data-en="Women">حريمي</button>
+          <button class="filter-btn sub" type="button" data-admin-sub="kids" data-ar="أطفال" data-en="Kids">أطفال</button>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table" id="adminTable">
+            <thead>
+              <tr>
+                <th data-ar="الصورة" data-en="Photo">الصورة</th>
+                <th data-ar="الاسم" data-en="Name">الاسم</th>
+                <th data-ar="الفئة" data-en="Category">الفئة</th>
+                <th data-ar="السعر" data-en="Price">السعر</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="adminTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="admin-tab-panel" id="adminPanelLenses" data-admin-panel="lenses" hidden>
+        <div class="admin-table-wrap">
+          <table class="admin-table" id="adminLensTable">
+            <thead>
+              <tr>
+                <th data-ar="الصورة" data-en="Photo">الصورة</th>
+                <th data-ar="الماركة والاسم" data-en="Brand &amp; name">الماركة والاسم</th>
+                <th data-ar="المدة" data-en="Duration">المدة</th>
+                <th data-ar="السعر" data-en="Price">السعر</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="adminLensTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="admin-tab-panel" id="adminPanelSlider" data-admin-panel="slider" hidden>
+        <p class="admin-note" data-ar="السلايدرات دي هي اللي بتظهر في أعلى الصفحة الرئيسية. لو مفيش سلايدرات مضافة هنا، الموقع بيورّي السلايدر الافتراضي بدل ما يفضل فاضي." data-en="These slides appear at the top of the homepage. If none are added here, the site shows its default slides instead of leaving the hero empty.">السلايدرات دي هي اللي بتظهر في أعلى الصفحة الرئيسية. لو مفيش سلايدرات مضافة هنا، الموقع بيورّي السلايدر الافتراضي بدل ما يفضل فاضي.</p>
+        <div class="admin-table-wrap">
+          <table class="admin-table" id="adminSlideTable">
+            <thead>
+              <tr>
+                <th data-ar="الترتيب" data-en="Order">الترتيب</th>
+                <th data-ar="الصورة" data-en="Photo">الصورة</th>
+                <th data-ar="العنوان" data-en="Title">العنوان</th>
+                <th data-ar="الحالة" data-en="Status">الحالة</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="adminSlideTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="admin-tab-panel" id="adminPanelUsers" data-admin-panel="users" hidden>
+        <p class="admin-note" data-ar="أدمن كامل: كل الصلاحيات. موظف: يقدر يضيف ويعدّل المنتجات والعدسات والسلايدر بس، من غير حذف أو تغيير صلاحيات حد." data-en="Admin: full access. Employee: can add and edit products, lenses and slides, but can't delete anything or change anyone's role.">أدمن كامل: كل الصلاحيات. موظف: يقدر يضيف ويعدّل المنتجات والعدسات والسلايدر بس، من غير حذف أو تغيير صلاحيات حد.</p>
+        <div class="admin-table-wrap">
+          <table class="admin-table" id="adminUsersTable">
+            <thead>
+              <tr>
+                <th data-ar="الاسم" data-en="Name">الاسم</th>
+                <th data-ar="البريد الإلكتروني" data-en="Email">البريد الإلكتروني</th>
+                <th data-ar="الهاتف" data-en="Phone">الهاتف</th>
+                <th data-ar="الصلاحية" data-en="Role">الصلاحية</th>
+              </tr>
+            </thead>
+            <tbody id="adminUsersTableBody"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -1280,8 +1371,10 @@
                 <select id="apCategory">
                   <option value="men" data-ar="رجالي طبي" data-en="Men — Prescription">رجالي طبي</option>
                   <option value="women" data-ar="حريمي طبي" data-en="Women — Prescription">حريمي طبي</option>
+                  <option value="kids" data-ar="أطفال طبي" data-en="Kids — Prescription">أطفال طبي</option>
                   <option value="men_sun" data-ar="رجالي شمس" data-en="Men — Sunglasses">رجالي شمس</option>
                   <option value="women_sun" data-ar="حريمي شمس" data-en="Women — Sunglasses">حريمي شمس</option>
+                  <option value="kids_sun" data-ar="أطفال شمس" data-en="Kids — Sunglasses">أطفال شمس</option>
                 </select>
               </div>
               <div class="auth-field">
@@ -1318,6 +1411,144 @@
               </div>
             </div>
             <button class="btn btn-primary auth-submit" id="adminFormSubmit" type="submit" data-ar="حفظ" data-en="Save">حفظ</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="adminLensFormBackdrop">
+      <div class="modal-box auth-box admin-form-box" role="dialog" aria-label="Lens form">
+        <button class="icon-btn modal-close" id="adminLensFormClose" type="button" aria-label="Close">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <div class="auth-body">
+          <h3 id="adminLensFormTitle" data-ar="إضافة عدسة" data-en="Add lens">إضافة عدسة</h3>
+          <div class="auth-msg" id="adminLensFormMsg"></div>
+          <form id="adminLensForm">
+            <input type="hidden" id="adminLensId">
+            <div class="admin-form-grid">
+              <div class="auth-field">
+                <label data-ar="الماركة" data-en="Brand">الماركة</label>
+                <input type="text" id="alBrand" required>
+              </div>
+              <div class="auth-field">
+                <label data-ar="المدة" data-en="Duration">المدة</label>
+                <select id="alDuration">
+                  <option value="daily" data-ar="يومية" data-en="Daily">يومية</option>
+                  <option value="monthly" data-ar="شهرية" data-en="Monthly">شهرية</option>
+                  <option value="yearly" data-ar="سنوية" data-en="Yearly">سنوية</option>
+                </select>
+              </div>
+              <div class="auth-field">
+                <label data-ar="الاسم (عربي)" data-en="Name (Arabic)">الاسم (عربي)</label>
+                <input type="text" id="alNameAr" required>
+              </div>
+              <div class="auth-field">
+                <label data-ar="الاسم (إنجليزي)" data-en="Name (English)">الاسم (إنجليزي)</label>
+                <input type="text" id="alNameEn" required>
+              </div>
+              <div class="auth-field">
+                <label data-ar="اللون (عربي)" data-en="Color (Arabic)">اللون (عربي)</label>
+                <input type="text" id="alColorAr" placeholder="عسلي">
+              </div>
+              <div class="auth-field">
+                <label data-ar="اللون (إنجليزي)" data-en="Color (English)">اللون (إنجليزي)</label>
+                <input type="text" id="alColorEn" placeholder="Honey">
+              </div>
+              <div class="auth-field">
+                <label data-ar="مدى القوة (اختياري)" data-en="Power range (optional)">مدى القوة (اختياري)</label>
+                <input type="text" id="alPower" placeholder="+4.00 to -8.00">
+              </div>
+              <div class="auth-field">
+                <label data-ar="السعر (ج.م)" data-en="Price (EGP)">السعر (ج.م)</label>
+                <input type="number" id="alPrice" min="0" step="1" required>
+              </div>
+              <div class="auth-field">
+                <label data-ar="الوصف (عربي، اختياري)" data-en="Description (Arabic, optional)">الوصف (عربي، اختياري)</label>
+                <input type="text" id="alDescAr">
+              </div>
+              <div class="auth-field">
+                <label data-ar="الوصف (إنجليزي، اختياري)" data-en="Description (English, optional)">الوصف (إنجليزي، اختياري)</label>
+                <input type="text" id="alDescEn">
+              </div>
+              <div class="auth-field admin-form-full">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="alActive" checked>
+                  <span data-ar="متاحة للبيع" data-en="Available for sale">متاحة للبيع</span>
+                </label>
+              </div>
+              <div class="auth-field admin-form-full">
+                <label data-ar="صورة العدسة" data-en="Lens photo">صورة العدسة</label>
+                <input type="file" id="alImage" accept="image/*">
+                <div class="admin-image-preview" id="alImagePreview" hidden><img id="alImagePreviewImg" src="" alt=""></div>
+              </div>
+            </div>
+            <button class="btn btn-primary auth-submit" id="adminLensFormSubmit" type="submit" data-ar="حفظ" data-en="Save">حفظ</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="adminSlideFormBackdrop">
+      <div class="modal-box auth-box admin-form-box" role="dialog" aria-label="Slide form">
+        <button class="icon-btn modal-close" id="adminSlideFormClose" type="button" aria-label="Close">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <div class="auth-body">
+          <h3 id="adminSlideFormTitle" data-ar="إضافة سلايد" data-en="Add slide">إضافة سلايد</h3>
+          <div class="auth-msg" id="adminSlideFormMsg"></div>
+          <form id="adminSlideForm">
+            <input type="hidden" id="adminSlideId">
+            <div class="admin-form-grid">
+              <div class="auth-field">
+                <label data-ar="عنوان صغير (عربي، اختياري)" data-en="Eyebrow (Arabic, optional)">عنوان صغير (عربي، اختياري)</label>
+                <input type="text" id="asEyebrowAr" placeholder="تسوّق حسب النوع">
+              </div>
+              <div class="auth-field">
+                <label data-ar="عنوان صغير (إنجليزي، اختياري)" data-en="Eyebrow (English, optional)">عنوان صغير (إنجليزي، اختياري)</label>
+                <input type="text" id="asEyebrowEn" placeholder="Shop by category">
+              </div>
+              <div class="auth-field">
+                <label data-ar="العنوان (عربي)" data-en="Title (Arabic)">العنوان (عربي)</label>
+                <input type="text" id="asTitleAr" required>
+              </div>
+              <div class="auth-field">
+                <label data-ar="العنوان (إنجليزي)" data-en="Title (English)">العنوان (إنجليزي)</label>
+                <input type="text" id="asTitleEn" required>
+              </div>
+              <div class="auth-field">
+                <label data-ar="الوصف (عربي، اختياري)" data-en="Subtitle (Arabic, optional)">الوصف (عربي، اختياري)</label>
+                <input type="text" id="asSubtitleAr">
+              </div>
+              <div class="auth-field">
+                <label data-ar="الوصف (إنجليزي، اختياري)" data-en="Subtitle (English, optional)">الوصف (إنجليزي، اختياري)</label>
+                <input type="text" id="asSubtitleEn">
+              </div>
+              <div class="auth-field">
+                <label data-ar="نص الزرار (عربي، اختياري)" data-en="Button text (Arabic, optional)">نص الزرار (عربي، اختياري)</label>
+                <input type="text" id="asCtaLabelAr" placeholder="تسوّق الآن">
+              </div>
+              <div class="auth-field">
+                <label data-ar="نص الزرار (إنجليزي، اختياري)" data-en="Button text (English, optional)">نص الزرار (إنجليزي، اختياري)</label>
+                <input type="text" id="asCtaLabelEn" placeholder="Shop now">
+              </div>
+              <div class="auth-field admin-form-full">
+                <label data-ar="رابط الزرار (اختياري)" data-en="Button link (optional)">رابط الزرار (اختياري)</label>
+                <input type="text" id="asCtaLink" placeholder="#/shop/sun">
+              </div>
+              <div class="auth-field admin-form-full">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="asActive" checked>
+                  <span data-ar="ظاهر في السلايدر" data-en="Visible in the slider">ظاهر في السلايدر</span>
+                </label>
+              </div>
+              <div class="auth-field admin-form-full">
+                <label data-ar="صورة الخلفية" data-en="Background photo">صورة الخلفية</label>
+                <input type="file" id="asImage" accept="image/*">
+                <div class="admin-image-preview" id="asImagePreview" hidden><img id="asImagePreviewImg" src="" alt=""></div>
+              </div>
+            </div>
+            <button class="btn btn-primary auth-submit" id="adminSlideFormSubmit" type="submit" data-ar="حفظ" data-en="Save">حفظ</button>
           </form>
         </div>
       </div>
@@ -1627,9 +1858,21 @@
   var catLabels = {
     men:   {ar:"نظارات طبية للرجال", en:"Prescription — Men"},
     women: {ar:"نظارات طبية للنساء", en:"Prescription — Women"},
+    kids:  {ar:"نظارات طبية للأطفال", en:"Prescription — Kids"},
     men_sun:   {ar:"نظارات شمس للرجال", en:"Sunglasses — Men"},
-    women_sun: {ar:"نظارات شمس للنساء", en:"Sunglasses — Women"}
+    women_sun: {ar:"نظارات شمس للنساء", en:"Sunglasses — Women"},
+    kids_sun:  {ar:"نظارات شمس للأطفال", en:"Sunglasses — Kids"}
   };
+  var SUB_LABELS = {
+    men:  {ar:"رجالي", en:"Men"},
+    women:{ar:"حريمي", en:"Women"},
+    kids: {ar:"أطفال", en:"Kids"}
+  };
+  // A product's category is "<sub>" (prescription) or "<sub>_sun" (sunglasses),
+  // sub being men/women/kids — these two helpers are the single source of
+  // truth for pulling those two pieces back apart everywhere else in the app.
+  function catIsSun(cat){ return /_sun$/.test(cat || ""); }
+  function catSub(cat){ return (cat || "").replace(/_sun$/, ""); }
 
   /* ---------------- lang ---------------- */
   function applyLang(){
@@ -1650,6 +1893,7 @@
     renderProducts();
     renderCart();
     if(typeof renderMegaMenus === "function") renderMegaMenus();
+    if(typeof renderHeroSlidesDynamic === "function") renderHeroSlidesDynamic();
     if(typeof currentQV !== "undefined" && currentQV && qvBackdrop && qvBackdrop.classList.contains("open")){
       renderQuickView();
     }
@@ -1733,14 +1977,12 @@
       if(state.shapeFilter && state.shapeFilter !== "all" && p.shape !== state.shapeFilter) return false;
       if(state.filter === "all") return true;
       if(state.filter === "sun"){
-        var isSun = p.cat === "men_sun" || p.cat === "women_sun";
-        if(!isSun) return false;
-        return state.subFilter === "all" || p.cat === state.subFilter + "_sun";
+        if(!catIsSun(p.cat)) return false;
+        return state.subFilter === "all" || catSub(p.cat) === state.subFilter;
       }
       if(state.filter === "prescription"){
-        var isRx = p.cat === "men" || p.cat === "women";
-        if(!isRx) return false;
-        return state.subFilter === "all" || p.cat === state.subFilter;
+        if(catIsSun(p.cat)) return false;
+        return state.subFilter === "all" || catSub(p.cat) === state.subFilter;
       }
       return true;
     });
@@ -1859,9 +2101,10 @@
   });
 
   /* ---------------- mega menu ---------------- */
+  var KIDS_AVATAR_ICON = '<svg width="26" height="26" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="10" r="1" fill="currentColor"/><circle cx="15" cy="10" r="1" fill="currentColor"/><path d="M8 15c1.2 1.2 2.6 1.8 4 1.8s2.8-.6 4-1.8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
   var megaDefs = {
-    prescription: { cats:["men","women"], filterKey:"prescription", elId:"megaPrescription" },
-    sun:          { cats:["men_sun","women_sun"], filterKey:"sun", elId:"megaSun" }
+    prescription: { cats:["men","women","kids"], filterKey:"prescription", elId:"megaPrescription" },
+    sun:          { cats:["men_sun","women_sun","kids_sun"], filterKey:"sun", elId:"megaSun" }
   };
 
   function renderMegaMenus(){
@@ -1887,6 +2130,7 @@
       var genderColLabel = state.lang === "ar" ? "تسوق حسب الجنس" : "Shop by gender";
       var menCat = key === "prescription" ? "men" : "men_sun";
       var womenCat = key === "prescription" ? "women" : "women_sun";
+      var kidsCat = key === "prescription" ? "kids" : "kids_sun";
       var womenAvatar = key === "sun" ? MEGA_AVATAR_WOMEN_SUN : MEGA_AVATAR_WOMEN;
       var menAvatar = key === "sun" ? MEGA_AVATAR_MEN_SUN : MEGA_AVATAR_MEN;
       var arrow = state.lang === "ar"
@@ -1903,6 +2147,10 @@
             '<a href="#shop" class="mega-gender-item" data-mega-gender="men" data-mega-filter="'+def.filterKey+'">' +
               '<img class="avatar-photo" src="'+menAvatar+'" alt="">' +
               '<span>'+catLabels[menCat][state.lang]+'</span>' +
+            '</a>' +
+            '<a href="#shop" class="mega-gender-item" data-mega-gender="kids" data-mega-filter="'+def.filterKey+'">' +
+              '<span class="avatar-icon">'+KIDS_AVATAR_ICON+'</span>' +
+              '<span>'+catLabels[kidsCat][state.lang]+'</span>' +
             '</a>' +
           '</div>' +
         '</div>' +
@@ -3095,21 +3343,23 @@
     else if(document.getElementById("adminFormBackdrop") && document.getElementById("adminFormBackdrop").classList.contains("open")) closeAdminForm();
   });
 
-  /* ---------------- hero promo slider ---------------- */
-  (function(){
+  /* ---------------- hero promo slider ----------------
+     bindHeroSlides() (re)binds the slide-switching logic to whatever is
+     currently in #heroSlides/#heroDots. It's split out from the one-time
+     setup below so the admin's dynamic slider (see loadHeroSlides() further
+     down) can swap the slide markup and call it again, without re-attaching
+     the prev/next/hover/lang listeners a second time. */
+  var heroSlider = { next:function(){}, prev:function(){}, start:function(){}, stop:function(){} };
+
+  function bindHeroSlides(){
     var saleImg = document.getElementById("heroImgSale");
     var lensImg = document.getElementById("heroImgLens");
-    var badge0 = document.getElementById("heroLogoBadge0");
-    var badge1 = document.getElementById("heroLogoBadge1");
     if(saleImg) saleImg.src = HERO_IMG_SALE;
     if(lensImg) lensImg.src = HERO_IMG_LENS;
-    if(badge0) badge0.src = HERO_LOGO_MARK;
-    if(badge1) badge1.src = HERO_LOGO_MARK;
+    document.querySelectorAll(".hero-slide-badge img").forEach(function(img){ img.src = HERO_LOGO_MARK; });
 
     var slides = Array.prototype.slice.call(document.querySelectorAll(".hero-slide"));
     var dots = Array.prototype.slice.call(document.querySelectorAll(".hero-dot"));
-    var prevBtn = document.getElementById("heroPrev");
-    var nextBtn = document.getElementById("heroNext");
     if(!slides.length) return;
 
     var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -3136,16 +3386,29 @@
     dots.forEach(function(d){
       d.addEventListener("click", function(){
         goTo(parseInt(d.dataset.goto, 10) || 0);
-        start();
+        heroSlider.start();
       });
     });
-    if(nextBtn) nextBtn.addEventListener("click", function(){ next(); start(); });
-    if(prevBtn) prevBtn.addEventListener("click", function(){ prev(); start(); });
+
+    heroSlider.next = next;
+    heroSlider.prev = prev;
+    heroSlider.start = start;
+    heroSlider.stop = stop;
+
+    goTo(0);
+    start();
+  }
+
+  (function(){
+    var prevBtn = document.getElementById("heroPrev");
+    var nextBtn = document.getElementById("heroNext");
+    if(nextBtn) nextBtn.addEventListener("click", function(){ heroSlider.next(); heroSlider.start(); });
+    if(prevBtn) prevBtn.addEventListener("click", function(){ heroSlider.prev(); heroSlider.start(); });
 
     var heroEl = document.getElementById("hero");
     if(heroEl){
-      heroEl.addEventListener("mouseenter", stop);
-      heroEl.addEventListener("mouseleave", start);
+      heroEl.addEventListener("mouseenter", function(){ heroSlider.stop(); });
+      heroEl.addEventListener("mouseleave", function(){ heroSlider.start(); });
     }
 
     function updateArrowLabels(){
@@ -3159,8 +3422,7 @@
     var langBtn = document.getElementById("langToggle");
     if(langBtn) langBtn.addEventListener("click", function(){ setTimeout(updateArrowLabels, 0); });
 
-    goTo(0);
-    start();
+    bindHeroSlides();
   })();
 
   /* ---------------- brands slider ---------------- */
@@ -3310,9 +3572,9 @@
       thumbsEl.innerHTML = "";
     }
 
-    var isSun = p.cat === "men_sun" || p.cat === "women_sun";
+    var isSun = catIsSun(p.cat);
     var mainFilter = isSun ? "sun" : "prescription";
-    var sub = (p.cat === "men" || p.cat === "men_sun") ? "men" : "women";
+    var sub = catSub(p.cat);
 
     document.getElementById("productCat").textContent = catLabels[p.cat][state.lang];
     document.getElementById("productName").textContent = p.name[state.lang];
@@ -3356,7 +3618,7 @@
 
     var shapeSpec = shapeSizeSpecs[p.shape] || {lens:"52", temple:"140"};
     var colorName = colorNames[p.color] ? colorNames[p.color][state.lang] : "—";
-    var genderLabel = (p.cat === "men" || p.cat === "men_sun") ? (state.lang==="ar"?"رجالي":"Men") : (state.lang==="ar"?"حريمي":"Women");
+    var genderLabel = (SUB_LABELS[sub] && SUB_LABELS[sub][state.lang]) || sub;
     var typeLabel = isSun ? (state.lang==="ar"?"نظارة شمس":"Sunglasses") : (state.lang==="ar"?"نظارة طبية":"Prescription glasses");
     var specs = [
       { label: state.lang==="ar"?"الماركة":"Brand", value: state.lang==="ar"?"رامي ربيع":"Rami Rabea" },
@@ -3385,7 +3647,7 @@
       var pool = products.filter(function(x){
         if(x.id === p.id) return false;
         if(related.indexOf(x) !== -1) return false;
-        return isSun ? (x.cat==="men_sun"||x.cat==="women_sun") : (x.cat==="men"||x.cat==="women");
+        return catIsSun(x.cat) === isSun;
       });
       related = related.concat(pool).slice(0,4);
     }
@@ -3430,9 +3692,9 @@
     adminSection.hidden = true;
 
     if(route.type === "admin"){
-      if(typeof currentUserRole !== "undefined" && currentUserRole !== "admin"){
+      if(typeof currentUserRole !== "undefined" && currentUserRole !== "admin" && currentUserRole !== "employee"){
         location.hash = "#/";
-        showToast(state.lang === "ar" ? "هذه الصفحة للأدمن فقط" : "This page is for admins only");
+        showToast(state.lang === "ar" ? "هذه الصفحة لفريق العمل فقط" : "This page is for staff only");
         return;
       }
       setSectionsHidden(HOME_ONLY_SECTIONS, true);
@@ -3578,7 +3840,7 @@
     }
     supabaseClient.from("profiles").select("role").eq("id", user.id).single().then(function(res){
       currentUserRole = (res.data && res.data.role) || "customer";
-      if(authAdminLink) authAdminLink.hidden = currentUserRole !== "admin";
+      if(authAdminLink) authAdminLink.hidden = (currentUserRole !== "admin" && currentUserRole !== "employee");
       if(location.hash.indexOf("#/admin") === 0) handleRoute();
     }).catch(function(){
       currentUserRole = "customer";
@@ -3708,16 +3970,20 @@
   var apImagePreview = document.getElementById("apImagePreview");
   var apImagePreviewImg = document.getElementById("apImagePreviewImg");
   var adminEditingId = null;
+  var adminProductRowsCache = [];
 
   var ADMIN_CAT_LABELS = {
     men: { ar:"رجالي طبي", en:"Men — Rx" },
     women: { ar:"حريمي طبي", en:"Women — Rx" },
+    kids: { ar:"أطفال طبي", en:"Kids — Rx" },
     men_sun: { ar:"رجالي شمس", en:"Men — Sun" },
-    women_sun: { ar:"حريمي شمس", en:"Women — Sun" }
+    women_sun: { ar:"حريمي شمس", en:"Women — Sun" },
+    kids_sun: { ar:"أطفال شمس", en:"Kids — Sun" }
   };
   function adminCategoryLabel(cat){
     return (ADMIN_CAT_LABELS[cat] && ADMIN_CAT_LABELS[cat][state.lang]) || cat;
   }
+  function isAdminUser(){ return currentUserRole === "admin"; }
 
   function showAdminMsg(text, type){
     var el = document.getElementById("adminMsg");
@@ -3726,18 +3992,96 @@
     clearTimeout(showAdminMsg._t);
     showAdminMsg._t = setTimeout(function(){ el.className = "admin-msg"; }, 3200);
   }
-  function showAdminFormMsg(text, type){
-    var el = document.getElementById("adminFormMsg");
+  function showFormMsg(elId, text, type){
+    var el = document.getElementById(elId);
+    if(!el) return;
     el.textContent = text;
     el.className = "auth-msg show " + type;
   }
-  function clearAdminFormMsg(){
-    var el = document.getElementById("adminFormMsg");
+  function clearFormMsg(elId){
+    var el = document.getElementById(elId);
+    if(!el) return;
     el.className = "auth-msg";
     el.textContent = "";
   }
 
+  /* ---- tabs: prescription / sunglasses / lenses / slider / users ---- */
+  var adminActiveTab = "rx";
+  var adminActiveSub = "all";
+
+  var ADMIN_TAB_TITLES = {
+    rx:     { ar:"النظارات الطبية", en:"Prescription glasses" },
+    sun:    { ar:"النظارات الشمسية", en:"Sunglasses" },
+    lenses: { ar:"العدسات الطبية", en:"Contact lenses" },
+    slider: { ar:"السلايدر", en:"Homepage slider" },
+    users:  { ar:"المستخدمون والصلاحيات", en:"Users & permissions" }
+  };
+  var ADMIN_ADD_LABELS = {
+    rx:     { ar:"+ إضافة منتج", en:"+ Add product" },
+    sun:    { ar:"+ إضافة منتج", en:"+ Add product" },
+    lenses: { ar:"+ إضافة عدسة", en:"+ Add lens" },
+    slider: { ar:"+ إضافة سلايد", en:"+ Add slide" }
+  };
+
+  function applyAdminTabUI(){
+    var usersBtn = document.getElementById("adminUsersTabBtn");
+    if(usersBtn) usersBtn.hidden = !isAdminUser();
+    if(adminActiveTab === "users" && !isAdminUser()) adminActiveTab = "rx";
+
+    document.querySelectorAll("#adminTabs .filter-btn").forEach(function(btn){
+      btn.classList.toggle("active", btn.dataset.adminTab === adminActiveTab);
+    });
+    document.querySelectorAll(".admin-tab-panel").forEach(function(panel){
+      var tabs = (panel.dataset.adminPanel || "").split(",");
+      panel.hidden = tabs.indexOf(adminActiveTab) === -1;
+    });
+    var titleEl = document.getElementById("adminPageTitle");
+    if(titleEl && ADMIN_TAB_TITLES[adminActiveTab]) titleEl.textContent = ADMIN_TAB_TITLES[adminActiveTab][state.lang];
+    if(adminAddBtn){
+      var addLabel = ADMIN_ADD_LABELS[adminActiveTab];
+      adminAddBtn.hidden = !addLabel;
+      if(addLabel) adminAddBtn.textContent = addLabel[state.lang];
+    }
+  }
+
+  function renderAdminActivePanel(){
+    if(adminActiveTab === "rx" || adminActiveTab === "sun") renderAdminProducts();
+    else if(adminActiveTab === "lenses") renderAdminLenses();
+    else if(adminActiveTab === "slider") renderAdminSlides();
+    else if(adminActiveTab === "users") renderAdminUsers();
+  }
+
   function renderAdminPage(){
+    applyAdminTabUI();
+    renderAdminActivePanel();
+  }
+
+  var adminTabsEl = document.getElementById("adminTabs");
+  if(adminTabsEl){
+    adminTabsEl.addEventListener("click", function(e){
+      var btn = e.target.closest("[data-admin-tab]");
+      if(!btn) return;
+      adminActiveTab = btn.dataset.adminTab;
+      adminActiveSub = "all";
+      var subtabs = document.getElementById("adminProductSubtabs");
+      if(subtabs) subtabs.querySelectorAll(".filter-btn").forEach(function(b){ b.classList.toggle("active", b.dataset.adminSub === "all"); });
+      applyAdminTabUI();
+      renderAdminActivePanel();
+    });
+  }
+  var adminProductSubtabsEl = document.getElementById("adminProductSubtabs");
+  if(adminProductSubtabsEl){
+    adminProductSubtabsEl.addEventListener("click", function(e){
+      var btn = e.target.closest("[data-admin-sub]");
+      if(!btn) return;
+      adminActiveSub = btn.dataset.adminSub;
+      adminProductSubtabsEl.querySelectorAll(".filter-btn").forEach(function(b){ b.classList.toggle("active", b === btn); });
+      renderAdminProductRows();
+    });
+  }
+
+  /* ---- prescription + sunglasses products (shared table, filtered by tab) ---- */
+  function renderAdminProducts(){
     if(!adminTableBody) return;
     var loadingText = state.lang === "ar" ? "جارِ التحميل..." : "Loading...";
     adminTableBody.innerHTML = '<tr><td colspan="5" class="admin-empty">'+loadingText+'</td></tr>';
@@ -3754,47 +4098,57 @@
           adminTableBody.innerHTML = '<tr><td colspan="5" class="admin-empty">'+translateAuthError(res.error)+'</td></tr>';
           return;
         }
-        var rows = res.data || [];
-        if(!rows.length){
-          adminTableBody.innerHTML = '<tr><td colspan="5" class="admin-empty">'+(state.lang==="ar"?"لا توجد منتجات بعد":"No products yet")+'</td></tr>';
-          return;
-        }
-        adminTableBody.innerHTML = rows.map(function(row){
-          var imgs = (row.product_images||[]).slice().sort(function(a,b){ return (a.sort_order||0)-(b.sort_order||0); });
-          var photo = imgs.length ? imgs[0].url : "";
-          var name = state.lang === "ar" ? row.name_ar : (row.name_en || row.name_ar);
-          return '' +
-            '<tr>' +
-              '<td><div class="admin-thumb">'+(photo ? '<img src="'+photo+'" alt="">' : '')+'</div></td>' +
-              '<td>'+name+'</td>' +
-              '<td>'+adminCategoryLabel(row.category)+'</td>' +
-              '<td class="tabular">'+row.price+'</td>' +
-              '<td><div class="admin-row-actions">' +
-                '<button type="button" data-edit="'+row.id+'">'+(state.lang==="ar"?"تعديل":"Edit")+'</button>' +
-                '<button type="button" class="admin-delete" data-delete="'+row.id+'">'+(state.lang==="ar"?"حذف":"Delete")+'</button>' +
-              '</div></td>' +
-            '</tr>';
-        }).join("");
-        adminTableBody.querySelectorAll("[data-edit]").forEach(function(btn){
-          btn.addEventListener("click", function(){
-            var id = parseInt(btn.dataset.edit,10);
-            var row = rows.find(function(r){ return r.id === id; });
-            if(row) openAdminForm(row);
-          });
-        });
-        adminTableBody.querySelectorAll("[data-delete]").forEach(function(btn){
-          btn.addEventListener("click", function(){
-            deleteAdminProduct(parseInt(btn.dataset.delete,10));
-          });
-        });
+        adminProductRowsCache = res.data || [];
+        renderAdminProductRows();
       })
       .catch(function(){
         adminTableBody.innerHTML = '<tr><td colspan="5" class="admin-empty">'+authText("networkError")+'</td></tr>';
       });
   }
 
+  function renderAdminProductRows(){
+    if(!adminTableBody) return;
+    var rows = adminProductRowsCache.filter(function(row){
+      if(catIsSun(row.category) !== (adminActiveTab === "sun")) return false;
+      if(adminActiveSub === "all") return true;
+      return catSub(row.category) === adminActiveSub;
+    });
+    if(!rows.length){
+      adminTableBody.innerHTML = '<tr><td colspan="5" class="admin-empty">'+(state.lang==="ar"?"لا توجد منتجات بعد":"No products yet")+'</td></tr>';
+      return;
+    }
+    adminTableBody.innerHTML = rows.map(function(row){
+      var imgs = (row.product_images||[]).slice().sort(function(a,b){ return (a.sort_order||0)-(b.sort_order||0); });
+      var photo = imgs.length ? imgs[0].url : "";
+      var name = state.lang === "ar" ? row.name_ar : (row.name_en || row.name_ar);
+      return '' +
+        '<tr>' +
+          '<td><div class="admin-thumb">'+(photo ? '<img src="'+photo+'" alt="">' : '')+'</div></td>' +
+          '<td>'+name+'</td>' +
+          '<td>'+adminCategoryLabel(row.category)+'</td>' +
+          '<td class="tabular">'+row.price+'</td>' +
+          '<td><div class="admin-row-actions">' +
+            '<button type="button" data-edit="'+row.id+'">'+(state.lang==="ar"?"تعديل":"Edit")+'</button>' +
+            (isAdminUser() ? '<button type="button" class="admin-delete" data-delete="'+row.id+'">'+(state.lang==="ar"?"حذف":"Delete")+'</button>' : '') +
+          '</div></td>' +
+        '</tr>';
+    }).join("");
+    adminTableBody.querySelectorAll("[data-edit]").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        var id = parseInt(btn.dataset.edit,10);
+        var row = adminProductRowsCache.find(function(r){ return r.id === id; });
+        if(row) openAdminForm(row);
+      });
+    });
+    adminTableBody.querySelectorAll("[data-delete]").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        deleteAdminProduct(parseInt(btn.dataset.delete,10));
+      });
+    });
+  }
+
   function openAdminForm(row){
-    clearAdminFormMsg();
+    clearFormMsg("adminFormMsg");
     adminProductForm.reset();
     apImagePreview.hidden = true;
     if(row){
@@ -3819,6 +4173,9 @@
       adminEditingId = null;
       adminFormTitle.textContent = state.lang === "ar" ? "إضافة منتج" : "Add product";
       document.getElementById("apColor").value = "#2b2b2b";
+      var presetCat = adminActiveSub === "all" ? "men" : adminActiveSub;
+      if(adminActiveTab === "sun") presetCat += "_sun";
+      document.getElementById("apCategory").value = presetCat;
     }
     adminFormBackdrop.classList.add("open");
     document.body.style.overflow = "hidden";
@@ -3834,13 +4191,19 @@
     supabaseClient.from("products").delete().eq("id", id).then(function(res){
       if(res.error){ showAdminMsg(translateAuthError(res.error), "error"); return; }
       showAdminMsg(state.lang === "ar" ? "تم الحذف" : "Deleted", "success");
-      renderAdminPage();
+      renderAdminProducts();
       loadProducts();
     });
   }
 
   if(adminAddBtn){
-    adminAddBtn.addEventListener("click", function(){ openAdminForm(null); });
+    adminAddBtn.addEventListener("click", function(){
+      if(adminActiveTab === "rx" || adminActiveTab === "sun") openAdminForm(null);
+      else if(adminActiveTab === "lenses") openLensForm(null);
+      else if(adminActiveTab === "slider") openSlideForm(null);
+    });
+  }
+  if(adminFormClose){
     adminFormClose.addEventListener("click", closeAdminForm);
     adminFormBackdrop.addEventListener("click", function(e){
       if(e.target === adminFormBackdrop) closeAdminForm();
@@ -3858,8 +4221,8 @@
 
     adminProductForm.addEventListener("submit", function(e){
       e.preventDefault();
-      clearAdminFormMsg();
-      if(!supabaseClient){ showAdminFormMsg(authText("unavailable"), "error"); return; }
+      clearFormMsg("adminFormMsg");
+      if(!supabaseClient){ showFormMsg("adminFormMsg", authText("unavailable"), "error"); return; }
       var payload = {
         name_ar: document.getElementById("apNameAr").value.trim(),
         name_en: document.getElementById("apNameEn").value.trim(),
@@ -3897,14 +4260,517 @@
         adminFormSubmit.disabled = false;
         closeAdminForm();
         showAdminMsg(state.lang === "ar" ? "تم الحفظ بنجاح" : "Saved successfully", "success");
-        renderAdminPage();
+        renderAdminProducts();
         loadProducts();
       }).catch(function(err){
         adminFormSubmit.disabled = false;
-        showAdminFormMsg(translateAuthError(err), "error");
+        showFormMsg("adminFormMsg", translateAuthError(err), "error");
       });
     });
   }
+
+  /* ---- contact lenses ---- */
+  var adminLensTableBody = document.getElementById("adminLensTableBody");
+  var adminLensFormBackdrop = document.getElementById("adminLensFormBackdrop");
+  var adminLensFormClose = document.getElementById("adminLensFormClose");
+  var adminLensFormTitle = document.getElementById("adminLensFormTitle");
+  var adminLensForm = document.getElementById("adminLensForm");
+  var adminLensFormSubmit = document.getElementById("adminLensFormSubmit");
+  var alImageInput = document.getElementById("alImage");
+  var alImagePreview = document.getElementById("alImagePreview");
+  var alImagePreviewImg = document.getElementById("alImagePreviewImg");
+  var adminLensEditingId = null;
+  var adminLensRowsCache = [];
+
+  var LENS_DURATION_LABELS = {
+    daily:   { ar:"يومية", en:"Daily" },
+    monthly: { ar:"شهرية", en:"Monthly" },
+    yearly:  { ar:"سنوية", en:"Yearly" }
+  };
+
+  function renderAdminLenses(){
+    if(!adminLensTableBody) return;
+    var loadingText = state.lang === "ar" ? "جارِ التحميل..." : "Loading...";
+    adminLensTableBody.innerHTML = '<tr><td colspan="5" class="admin-empty">'+loadingText+'</td></tr>';
+    if(!supabaseClient){
+      adminLensTableBody.innerHTML = '<tr><td colspan="5" class="admin-empty">'+authText("unavailable")+'</td></tr>';
+      return;
+    }
+    supabaseClient
+      .from("lenses")
+      .select("*,lens_images(url,sort_order)")
+      .order("id", { ascending:true })
+      .then(function(res){
+        if(res.error){
+          adminLensTableBody.innerHTML = '<tr><td colspan="5" class="admin-empty">'+translateAuthError(res.error)+'</td></tr>';
+          return;
+        }
+        adminLensRowsCache = res.data || [];
+        if(!adminLensRowsCache.length){
+          adminLensTableBody.innerHTML = '<tr><td colspan="5" class="admin-empty">'+(state.lang==="ar"?"لا توجد عدسات بعد":"No lenses yet")+'</td></tr>';
+          return;
+        }
+        adminLensTableBody.innerHTML = adminLensRowsCache.map(function(row){
+          var imgs = (row.lens_images||[]).slice().sort(function(a,b){ return (a.sort_order||0)-(b.sort_order||0); });
+          var photo = imgs.length ? imgs[0].url : "";
+          var name = state.lang === "ar" ? row.name_ar : (row.name_en || row.name_ar);
+          var durLabel = (LENS_DURATION_LABELS[row.duration] && LENS_DURATION_LABELS[row.duration][state.lang]) || row.duration;
+          return '' +
+            '<tr>' +
+              '<td><div class="admin-thumb">'+(photo ? '<img src="'+photo+'" alt="">' : '')+'</div></td>' +
+              '<td>'+row.brand+' — '+name+'</td>' +
+              '<td>'+durLabel+'</td>' +
+              '<td class="tabular">'+row.price+'</td>' +
+              '<td><div class="admin-row-actions">' +
+                '<button type="button" data-edit="'+row.id+'">'+(state.lang==="ar"?"تعديل":"Edit")+'</button>' +
+                (isAdminUser() ? '<button type="button" class="admin-delete" data-delete="'+row.id+'">'+(state.lang==="ar"?"حذف":"Delete")+'</button>' : '') +
+              '</div></td>' +
+            '</tr>';
+        }).join("");
+        adminLensTableBody.querySelectorAll("[data-edit]").forEach(function(btn){
+          btn.addEventListener("click", function(){
+            var id = parseInt(btn.dataset.edit,10);
+            var row = adminLensRowsCache.find(function(r){ return r.id === id; });
+            if(row) openLensForm(row);
+          });
+        });
+        adminLensTableBody.querySelectorAll("[data-delete]").forEach(function(btn){
+          btn.addEventListener("click", function(){
+            deleteLens(parseInt(btn.dataset.delete,10));
+          });
+        });
+      })
+      .catch(function(){
+        adminLensTableBody.innerHTML = '<tr><td colspan="5" class="admin-empty">'+authText("networkError")+'</td></tr>';
+      });
+  }
+
+  function openLensForm(row){
+    clearFormMsg("adminLensFormMsg");
+    adminLensForm.reset();
+    alImagePreview.hidden = true;
+    if(row){
+      adminLensEditingId = row.id;
+      var imgs = (row.lens_images||[]).slice().sort(function(a,b){ return (a.sort_order||0)-(b.sort_order||0); });
+      adminLensFormTitle.textContent = state.lang === "ar" ? "تعديل عدسة" : "Edit lens";
+      document.getElementById("alBrand").value = row.brand || "";
+      document.getElementById("alDuration").value = row.duration || "monthly";
+      document.getElementById("alNameAr").value = row.name_ar || "";
+      document.getElementById("alNameEn").value = row.name_en || "";
+      document.getElementById("alColorAr").value = row.color_ar || "";
+      document.getElementById("alColorEn").value = row.color_en || "";
+      document.getElementById("alPower").value = row.power_range || "";
+      document.getElementById("alPrice").value = row.price || 0;
+      document.getElementById("alDescAr").value = row.description_ar || "";
+      document.getElementById("alDescEn").value = row.description_en || "";
+      document.getElementById("alActive").checked = row.is_active !== false;
+      if(imgs.length){
+        alImagePreviewImg.src = imgs[0].url;
+        alImagePreview.hidden = false;
+      }
+    } else {
+      adminLensEditingId = null;
+      adminLensFormTitle.textContent = state.lang === "ar" ? "إضافة عدسة" : "Add lens";
+      document.getElementById("alActive").checked = true;
+    }
+    adminLensFormBackdrop.classList.add("open");
+    document.body.style.overflow = "hidden";
+  }
+  function closeLensForm(){
+    adminLensFormBackdrop.classList.remove("open");
+    document.body.style.overflow = "";
+  }
+  function deleteLens(id){
+    var ok = confirm(state.lang === "ar" ? "متأكد إنك عايز تحذف العدسة دي؟" : "Delete this lens?");
+    if(!ok) return;
+    supabaseClient.from("lenses").delete().eq("id", id).then(function(res){
+      if(res.error){ showAdminMsg(translateAuthError(res.error), "error"); return; }
+      showAdminMsg(state.lang === "ar" ? "تم الحذف" : "Deleted", "success");
+      renderAdminLenses();
+    });
+  }
+
+  if(adminLensFormClose){
+    adminLensFormClose.addEventListener("click", closeLensForm);
+    adminLensFormBackdrop.addEventListener("click", function(e){
+      if(e.target === adminLensFormBackdrop) closeLensForm();
+    });
+    alImageInput.addEventListener("change", function(e){
+      var f = e.target.files[0];
+      if(!f) return;
+      var reader = new FileReader();
+      reader.onload = function(ev){
+        alImagePreviewImg.src = ev.target.result;
+        alImagePreview.hidden = false;
+      };
+      reader.readAsDataURL(f);
+    });
+
+    adminLensForm.addEventListener("submit", function(e){
+      e.preventDefault();
+      clearFormMsg("adminLensFormMsg");
+      if(!supabaseClient){ showFormMsg("adminLensFormMsg", authText("unavailable"), "error"); return; }
+      var payload = {
+        brand: document.getElementById("alBrand").value.trim(),
+        duration: document.getElementById("alDuration").value,
+        name_ar: document.getElementById("alNameAr").value.trim(),
+        name_en: document.getElementById("alNameEn").value.trim(),
+        color_ar: document.getElementById("alColorAr").value.trim() || null,
+        color_en: document.getElementById("alColorEn").value.trim() || null,
+        power_range: document.getElementById("alPower").value.trim() || null,
+        price: parseFloat(document.getElementById("alPrice").value) || 0,
+        description_ar: document.getElementById("alDescAr").value.trim() || null,
+        description_en: document.getElementById("alDescEn").value.trim() || null,
+        is_active: document.getElementById("alActive").checked
+      };
+      adminLensFormSubmit.disabled = true;
+
+      var savePromise = adminLensEditingId
+        ? supabaseClient.from("lenses").update(payload).eq("id", adminLensEditingId).select().single()
+        : supabaseClient.from("lenses").insert(payload).select().single();
+
+      savePromise.then(function(res){
+        if(res.error) throw res.error;
+        var lensId = res.data.id;
+        var file = alImageInput.files[0];
+        if(file){
+          var path = Date.now() + "_" + file.name.replace(/[^a-zA-Z0-9.]/g, "_");
+          return supabaseClient.storage.from("lens-images").upload(path, file).then(function(upRes){
+            if(upRes.error) throw upRes.error;
+            var pub = supabaseClient.storage.from("lens-images").getPublicUrl(path);
+            var url = pub.data.publicUrl;
+            return supabaseClient.from("lens_images").delete().eq("lens_id", lensId).eq("sort_order", 0).then(function(){
+              return supabaseClient.from("lens_images").insert({ lens_id: lensId, url: url, sort_order: 0 });
+            });
+          });
+        }
+      }).then(function(){
+        adminLensFormSubmit.disabled = false;
+        closeLensForm();
+        showAdminMsg(state.lang === "ar" ? "تم الحفظ بنجاح" : "Saved successfully", "success");
+        renderAdminLenses();
+      }).catch(function(err){
+        adminLensFormSubmit.disabled = false;
+        showFormMsg("adminLensFormMsg", translateAuthError(err), "error");
+      });
+    });
+  }
+
+  /* ---- homepage slider ---- */
+  var adminSlideTableBody = document.getElementById("adminSlideTableBody");
+  var adminSlideFormBackdrop = document.getElementById("adminSlideFormBackdrop");
+  var adminSlideFormClose = document.getElementById("adminSlideFormClose");
+  var adminSlideFormTitle = document.getElementById("adminSlideFormTitle");
+  var adminSlideForm = document.getElementById("adminSlideForm");
+  var adminSlideFormSubmit = document.getElementById("adminSlideFormSubmit");
+  var asImageInput = document.getElementById("asImage");
+  var asImagePreview = document.getElementById("asImagePreview");
+  var asImagePreviewImg = document.getElementById("asImagePreviewImg");
+  var adminSlideEditingId = null;
+  var adminSlideRowsCache = [];
+
+  function renderAdminSlides(){
+    if(!adminSlideTableBody) return;
+    var loadingText = state.lang === "ar" ? "جارِ التحميل..." : "Loading...";
+    adminSlideTableBody.innerHTML = '<tr><td colspan="5" class="admin-empty">'+loadingText+'</td></tr>';
+    if(!supabaseClient){
+      adminSlideTableBody.innerHTML = '<tr><td colspan="5" class="admin-empty">'+authText("unavailable")+'</td></tr>';
+      return;
+    }
+    supabaseClient
+      .from("hero_slides")
+      .select("*")
+      .order("sort_order", { ascending:true })
+      .then(function(res){
+        if(res.error){
+          adminSlideTableBody.innerHTML = '<tr><td colspan="5" class="admin-empty">'+translateAuthError(res.error)+'</td></tr>';
+          return;
+        }
+        adminSlideRowsCache = res.data || [];
+        if(!adminSlideRowsCache.length){
+          adminSlideTableBody.innerHTML = '<tr><td colspan="5" class="admin-empty">'+(state.lang==="ar"?"لا توجد سلايدرات مضافة — الموقع بيستخدم السلايدر الافتراضي":"No slides added yet — the site is using its default slides")+'</td></tr>';
+          return;
+        }
+        adminSlideTableBody.innerHTML = adminSlideRowsCache.map(function(row, idx){
+          var title = state.lang === "ar" ? row.title_ar : (row.title_en || row.title_ar);
+          var activeBadge = row.is_active
+            ? '<span class="admin-active-badge on">'+(state.lang==="ar"?"ظاهر":"Live")+'</span>'
+            : '<span class="admin-active-badge off">'+(state.lang==="ar"?"مخفي":"Hidden")+'</span>';
+          return '' +
+            '<tr>' +
+              '<td><div class="admin-order-btns">' +
+                '<button type="button" data-move-up="'+row.id+'"'+(idx===0?" disabled":"")+'>▲</button>' +
+                '<button type="button" data-move-down="'+row.id+'"'+(idx===adminSlideRowsCache.length-1?" disabled":"")+'>▼</button>' +
+              '</div></td>' +
+              '<td><div class="admin-thumb">'+(row.image_url ? '<img src="'+row.image_url+'" alt="">' : '')+'</div></td>' +
+              '<td>'+title+'</td>' +
+              '<td>'+activeBadge+'</td>' +
+              '<td><div class="admin-row-actions">' +
+                '<button type="button" data-edit="'+row.id+'">'+(state.lang==="ar"?"تعديل":"Edit")+'</button>' +
+                (isAdminUser() ? '<button type="button" class="admin-delete" data-delete="'+row.id+'">'+(state.lang==="ar"?"حذف":"Delete")+'</button>' : '') +
+              '</div></td>' +
+            '</tr>';
+        }).join("");
+        adminSlideTableBody.querySelectorAll("[data-edit]").forEach(function(btn){
+          btn.addEventListener("click", function(){
+            var id = parseInt(btn.dataset.edit,10);
+            var row = adminSlideRowsCache.find(function(r){ return r.id === id; });
+            if(row) openSlideForm(row);
+          });
+        });
+        adminSlideTableBody.querySelectorAll("[data-delete]").forEach(function(btn){
+          btn.addEventListener("click", function(){
+            deleteSlide(parseInt(btn.dataset.delete,10));
+          });
+        });
+        adminSlideTableBody.querySelectorAll("[data-move-up]").forEach(function(btn){
+          btn.addEventListener("click", function(){ moveSlide(parseInt(btn.dataset.moveUp,10), -1); });
+        });
+        adminSlideTableBody.querySelectorAll("[data-move-down]").forEach(function(btn){
+          btn.addEventListener("click", function(){ moveSlide(parseInt(btn.dataset.moveDown,10), 1); });
+        });
+      })
+      .catch(function(){
+        adminSlideTableBody.innerHTML = '<tr><td colspan="5" class="admin-empty">'+authText("networkError")+'</td></tr>';
+      });
+  }
+
+  function moveSlide(id, dir){
+    var idx = adminSlideRowsCache.findIndex(function(r){ return r.id === id; });
+    var swapIdx = idx + dir;
+    if(idx === -1 || swapIdx < 0 || swapIdx >= adminSlideRowsCache.length) return;
+    var a = adminSlideRowsCache[idx], b = adminSlideRowsCache[swapIdx];
+    var aOrder = a.sort_order, bOrder = b.sort_order;
+    if(aOrder === bOrder){ aOrder = idx; bOrder = swapIdx; }
+    Promise.all([
+      supabaseClient.from("hero_slides").update({ sort_order: bOrder }).eq("id", a.id),
+      supabaseClient.from("hero_slides").update({ sort_order: aOrder }).eq("id", b.id)
+    ]).then(function(results){
+      var errRes = results.filter(function(r){ return r && r.error; })[0];
+      if(errRes){ showAdminMsg(translateAuthError(errRes.error), "error"); return; }
+      renderAdminSlides();
+      loadHeroSlides();
+    });
+  }
+
+  function openSlideForm(row){
+    clearFormMsg("adminSlideFormMsg");
+    adminSlideForm.reset();
+    asImagePreview.hidden = true;
+    if(row){
+      adminSlideEditingId = row.id;
+      adminSlideFormTitle.textContent = state.lang === "ar" ? "تعديل سلايد" : "Edit slide";
+      document.getElementById("asEyebrowAr").value = row.eyebrow_ar || "";
+      document.getElementById("asEyebrowEn").value = row.eyebrow_en || "";
+      document.getElementById("asTitleAr").value = row.title_ar || "";
+      document.getElementById("asTitleEn").value = row.title_en || "";
+      document.getElementById("asSubtitleAr").value = row.subtitle_ar || "";
+      document.getElementById("asSubtitleEn").value = row.subtitle_en || "";
+      document.getElementById("asCtaLabelAr").value = row.cta_label_ar || "";
+      document.getElementById("asCtaLabelEn").value = row.cta_label_en || "";
+      document.getElementById("asCtaLink").value = row.cta_link || "";
+      document.getElementById("asActive").checked = row.is_active !== false;
+      if(row.image_url){
+        asImagePreviewImg.src = row.image_url;
+        asImagePreview.hidden = false;
+      }
+    } else {
+      adminSlideEditingId = null;
+      adminSlideFormTitle.textContent = state.lang === "ar" ? "إضافة سلايد" : "Add slide";
+      document.getElementById("asActive").checked = true;
+    }
+    adminSlideFormBackdrop.classList.add("open");
+    document.body.style.overflow = "hidden";
+  }
+  function closeSlideForm(){
+    adminSlideFormBackdrop.classList.remove("open");
+    document.body.style.overflow = "";
+  }
+  function deleteSlide(id){
+    var ok = confirm(state.lang === "ar" ? "متأكد إنك عايز تحذف السلايد ده؟" : "Delete this slide?");
+    if(!ok) return;
+    supabaseClient.from("hero_slides").delete().eq("id", id).then(function(res){
+      if(res.error){ showAdminMsg(translateAuthError(res.error), "error"); return; }
+      showAdminMsg(state.lang === "ar" ? "تم الحذف" : "Deleted", "success");
+      renderAdminSlides();
+      loadHeroSlides();
+    });
+  }
+
+  if(adminSlideFormClose){
+    adminSlideFormClose.addEventListener("click", closeSlideForm);
+    adminSlideFormBackdrop.addEventListener("click", function(e){
+      if(e.target === adminSlideFormBackdrop) closeSlideForm();
+    });
+    asImageInput.addEventListener("change", function(e){
+      var f = e.target.files[0];
+      if(!f) return;
+      var reader = new FileReader();
+      reader.onload = function(ev){
+        asImagePreviewImg.src = ev.target.result;
+        asImagePreview.hidden = false;
+      };
+      reader.readAsDataURL(f);
+    });
+
+    adminSlideForm.addEventListener("submit", function(e){
+      e.preventDefault();
+      clearFormMsg("adminSlideFormMsg");
+      if(!supabaseClient){ showFormMsg("adminSlideFormMsg", authText("unavailable"), "error"); return; }
+      var payload = {
+        eyebrow_ar: document.getElementById("asEyebrowAr").value.trim() || null,
+        eyebrow_en: document.getElementById("asEyebrowEn").value.trim() || null,
+        title_ar: document.getElementById("asTitleAr").value.trim(),
+        title_en: document.getElementById("asTitleEn").value.trim(),
+        subtitle_ar: document.getElementById("asSubtitleAr").value.trim() || null,
+        subtitle_en: document.getElementById("asSubtitleEn").value.trim() || null,
+        cta_label_ar: document.getElementById("asCtaLabelAr").value.trim() || null,
+        cta_label_en: document.getElementById("asCtaLabelEn").value.trim() || null,
+        cta_link: document.getElementById("asCtaLink").value.trim() || null,
+        is_active: document.getElementById("asActive").checked
+      };
+      if(!adminSlideEditingId) payload.sort_order = adminSlideRowsCache.length;
+      adminSlideFormSubmit.disabled = true;
+
+      var savePromise = adminSlideEditingId
+        ? supabaseClient.from("hero_slides").update(payload).eq("id", adminSlideEditingId).select().single()
+        : supabaseClient.from("hero_slides").insert(payload).select().single();
+
+      savePromise.then(function(res){
+        if(res.error) throw res.error;
+        var slideId = res.data.id;
+        var file = asImageInput.files[0];
+        if(file){
+          var path = Date.now() + "_" + file.name.replace(/[^a-zA-Z0-9.]/g, "_");
+          return supabaseClient.storage.from("hero-images").upload(path, file).then(function(upRes){
+            if(upRes.error) throw upRes.error;
+            var pub = supabaseClient.storage.from("hero-images").getPublicUrl(path);
+            return supabaseClient.from("hero_slides").update({ image_url: pub.data.publicUrl }).eq("id", slideId);
+          });
+        }
+      }).then(function(){
+        adminSlideFormSubmit.disabled = false;
+        closeSlideForm();
+        showAdminMsg(state.lang === "ar" ? "تم الحفظ بنجاح" : "Saved successfully", "success");
+        renderAdminSlides();
+        loadHeroSlides();
+      }).catch(function(err){
+        adminSlideFormSubmit.disabled = false;
+        showFormMsg("adminSlideFormMsg", translateAuthError(err), "error");
+      });
+    });
+  }
+
+  /* ---- users & permissions ---- */
+  var adminUsersTableBody = document.getElementById("adminUsersTableBody");
+  var ROLE_LABELS = {
+    customer: { ar:"عميل", en:"Customer" },
+    employee: { ar:"موظف", en:"Employee" },
+    admin:    { ar:"أدمن", en:"Admin" }
+  };
+
+  function renderAdminUsers(){
+    if(!adminUsersTableBody) return;
+    var loadingText = state.lang === "ar" ? "جارِ التحميل..." : "Loading...";
+    adminUsersTableBody.innerHTML = '<tr><td colspan="4" class="admin-empty">'+loadingText+'</td></tr>';
+    if(!supabaseClient){
+      adminUsersTableBody.innerHTML = '<tr><td colspan="4" class="admin-empty">'+authText("unavailable")+'</td></tr>';
+      return;
+    }
+    supabaseClient
+      .from("profiles")
+      .select("id,full_name,phone,email,role,created_at")
+      .order("created_at", { ascending:false })
+      .then(function(res){
+        if(res.error){
+          adminUsersTableBody.innerHTML = '<tr><td colspan="4" class="admin-empty">'+translateAuthError(res.error)+'</td></tr>';
+          return;
+        }
+        var rows = res.data || [];
+        if(!rows.length){
+          adminUsersTableBody.innerHTML = '<tr><td colspan="4" class="admin-empty">'+(state.lang==="ar"?"لا يوجد مستخدمون":"No users yet")+'</td></tr>';
+          return;
+        }
+        adminUsersTableBody.innerHTML = rows.map(function(row){
+          var name = row.full_name || (state.lang === "ar" ? "بدون اسم" : "No name");
+          var roleOptions = ["customer","employee","admin"].map(function(r){
+            return '<option value="'+r+'"'+(row.role===r?" selected":"")+'>'+ROLE_LABELS[r][state.lang]+'</option>';
+          }).join("");
+          return '' +
+            '<tr>' +
+              '<td>'+name+'</td>' +
+              '<td>'+(row.email||"—")+'</td>' +
+              '<td>'+(row.phone||"—")+'</td>' +
+              '<td><select class="admin-role-select" data-user-role="'+row.id+'"'+(isAdminUser()?"":" disabled")+'>'+roleOptions+'</select></td>' +
+            '</tr>';
+        }).join("");
+        adminUsersTableBody.querySelectorAll("[data-user-role]").forEach(function(sel){
+          sel.addEventListener("change", function(){
+            changeUserRole(sel.dataset.userRole, sel.value, sel);
+          });
+        });
+      })
+      .catch(function(){
+        adminUsersTableBody.innerHTML = '<tr><td colspan="4" class="admin-empty">'+authText("networkError")+'</td></tr>';
+      });
+  }
+
+  function changeUserRole(userId, role, selectEl){
+    selectEl.disabled = true;
+    supabaseClient.from("profiles").update({ role: role }).eq("id", userId).then(function(res){
+      selectEl.disabled = !isAdminUser();
+      if(res.error){ showAdminMsg(translateAuthError(res.error), "error"); return; }
+      showAdminMsg(state.lang === "ar" ? "تم تحديث الصلاحية" : "Role updated", "success");
+    });
+  }
+
+  /* ---- dynamic homepage slider (falls back to the built-in slides above) ---- */
+  var dynamicHeroRows = null;
+  function escHtml(s){
+    return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];
+    });
+  }
+  function renderHeroSlidesDynamic(){
+    if(!dynamicHeroRows || !dynamicHeroRows.length) return;
+    var slidesEl = document.getElementById("heroSlides");
+    var dotsEl = document.getElementById("heroDots");
+    if(!slidesEl || !dotsEl) return;
+    slidesEl.innerHTML = dynamicHeroRows.map(function(row, idx){
+      var title = state.lang === "ar" ? row.title_ar : (row.title_en || row.title_ar);
+      var eyebrow = state.lang === "ar" ? row.eyebrow_ar : (row.eyebrow_en || row.eyebrow_ar);
+      var subtitle = state.lang === "ar" ? row.subtitle_ar : (row.subtitle_en || row.subtitle_ar);
+      var ctaLabel = state.lang === "ar" ? row.cta_label_ar : (row.cta_label_en || row.cta_label_ar);
+      return '' +
+        '<div class="hero-slide hero-slide-dynamic'+(idx===0?' active':'')+'" data-slide-index="'+idx+'">' +
+          '<div class="hero-slide-bg" aria-hidden="true">' +
+            (row.image_url ? '<img class="hero-slide-photo" src="'+escHtml(row.image_url)+'" alt="" loading="'+(idx===0?"eager":"lazy")+'">' : '') +
+            '<div class="hero-slide-scrim"></div>' +
+          '</div>' +
+          '<span class="hero-slide-wordmark">رامي ربيع</span>' +
+          '<div class="hero-slide-badge"><img src="" alt="Rami Rabea"></div>' +
+          '<div class="wrap hero-slide-copy"><div class="inner">' +
+            (eyebrow ? '<span class="eyebrow">'+escHtml(eyebrow)+'</span>' : '') +
+            '<h1>'+escHtml(title)+'</h1>' +
+            (subtitle ? '<p class="lede">'+escHtml(subtitle)+'</p>' : '') +
+            (ctaLabel ? '<div class="hero-ctas"><a href="'+escHtml(row.cta_link||"#/shop")+'" class="btn btn-primary">'+escHtml(ctaLabel)+'</a></div>' : '') +
+          '</div></div>' +
+        '</div>';
+    }).join("");
+    dotsEl.innerHTML = dynamicHeroRows.length > 1 ? dynamicHeroRows.map(function(row, idx){
+      return '<button class="hero-dot'+(idx===0?' active':'')+'" type="button" data-goto="'+idx+'" aria-label="'+(idx+1)+'"></button>';
+    }).join("") : "";
+    bindHeroSlides();
+  }
+  function loadHeroSlides(){
+    if(!supabaseClient) return;
+    supabaseClient.from("hero_slides").select("*").eq("is_active", true).order("sort_order", { ascending:true }).then(function(res){
+      if(res.error || !res.data || !res.data.length){ dynamicHeroRows = null; return; }
+      dynamicHeroRows = res.data;
+      renderHeroSlidesDynamic();
+    }).catch(function(){ /* offline or unreachable — keep the built-in fallback slides */ });
+  }
+  loadHeroSlides();
 
   applyLang();
 })();
