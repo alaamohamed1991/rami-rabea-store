@@ -941,6 +941,7 @@
     </div>
     <ul class="navlinks">
       <li><a href="#hero" data-ar="الرئيسية" data-en="Home">الرئيسية</a></li>
+      <li><a href="#/shop/all" data-ar="كل النظارات" data-en="All frames">كل النظارات</a></li>
       <li class="has-mega">
         <a href="#shop" data-mega-trigger="prescription" data-ar="النظارات الطبية" data-en="Prescription">النظارات الطبية</a>
         <div class="mega-panel" id="megaPrescription"></div>
@@ -1048,24 +1049,7 @@
       <span id="shopBreadcrumbCurrent"></span>
     </div>
     <div class="wrap">
-      <div class="shop-cats gender-banner" id="genderBannerTop" hidden>
-        <a class="shop-cat-card" href="#/shop/prescription/men">
-          <img src="https://images.pexels.com/photos/30316395/pexels-photo-30316395.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1200&amp;h=760" alt="" loading="lazy">
-          <span class="shop-cat-card-label">
-            <span class="eyebrow" data-ar="تسوّق حسب الجنس" data-en="Shop by gender">تسوّق حسب الجنس</span>
-            <h3 data-ar="نظارات طبية للرجال" data-en="Prescription glasses for men">نظارات طبية للرجال</h3>
-            <span class="cat-arrow" data-ar="تسوّقوا الآن ←" data-en="Shop now →">تسوّقوا الآن ←</span>
-          </span>
-        </a>
-        <a class="shop-cat-card" href="#/shop/prescription/women">
-          <img src="https://images.pexels.com/photos/5752315/pexels-photo-5752315.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1200&amp;h=760" alt="" loading="lazy">
-          <span class="shop-cat-card-label">
-            <span class="eyebrow" data-ar="تسوّق حسب الجنس" data-en="Shop by gender">تسوّق حسب الجنس</span>
-            <h3 data-ar="نظارات طبية للنساء" data-en="Prescription glasses for women">نظارات طبية للنساء</h3>
-            <span class="cat-arrow" data-ar="تسوّقوا الآن ←" data-en="Shop now →">تسوّقوا الآن ←</span>
-          </span>
-        </a>
-      </div>
+      <div class="shop-cats gender-banner" id="genderBannerTop" hidden></div>
       <div class="shop-cats">
         <a class="shop-cat-card" href="#/shop/sun">
           <img src="https://images.pexels.com/photos/8937082/pexels-photo-8937082.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1200&amp;h=760" alt="" loading="lazy">
@@ -4034,10 +4018,29 @@
     updateProductTotal();
   });
 
+  /* Top-of-page gender banner shown ONLY on the prescription shop page,
+     right below the breadcrumb — matches the reference screenshot's wording
+     exactly ("Prescription glasses for men/women" + "Shop now"). */
+  var topGenderBannerContent = {
+    men: {
+      img: "https://images.pexels.com/photos/30316395/pexels-photo-30316395.jpeg?auto=compress&cs=tinysrgb&w=1200&h=760",
+      eyebrow: {ar:"تسوّق حسب الجنس", en:"Shop by gender"},
+      heading: {ar:"نظارات طبية للرجال", en:"Prescription glasses for men"},
+      cta: {ar:"تسوّقوا الآن ←", en:"Shop now →"},
+      href: "#/shop/prescription/men"
+    },
+    women: {
+      img: "https://images.pexels.com/photos/5752315/pexels-photo-5752315.jpeg?auto=compress&cs=tinysrgb&w=1200&h=760",
+      eyebrow: {ar:"تسوّق حسب الجنس", en:"Shop by gender"},
+      heading: {ar:"نظارات طبية للنساء", en:"Prescription glasses for women"},
+      cta: {ar:"تسوّقوا الآن ←", en:"Shop now →"},
+      href: "#/shop/prescription/women"
+    }
+  };
   /* "inside the page" gender-split banner shown on the prescription and
      sunglasses shop pages, right above the product grid — different wording
      per type, and (for prescription) different wording again from the
-     top-of-page banner already hardcoded in the HTML above. */
+     top-of-page banner above. */
   var genderBannerContent = {
     prescription: {
       men: {
@@ -4072,6 +4075,26 @@
       }
     }
   };
+  /* Top-of-page banner shown only on the dedicated "all frames" page
+     (#/shop/all reached via the "كل النظارات" nav link) — split by TYPE
+     rather than gender, since that page mixes prescription and sun
+     products, each with its own destination page and its own products. */
+  var typeBannerContent = {
+    prescription: {
+      img: "https://images.pexels.com/photos/5752315/pexels-photo-5752315.jpeg?auto=compress&cs=tinysrgb&w=1200&h=760",
+      eyebrow: {ar:"تسوّق حسب النوع", en:"Shop by type"},
+      heading: {ar:"النظارات الطبية", en:"Prescription glasses"},
+      cta: {ar:"تسوّقوا الآن ←", en:"Shop now →"},
+      href: "#/shop/prescription"
+    },
+    sun: {
+      img: "https://images.pexels.com/photos/13505069/pexels-photo-13505069.jpeg?auto=compress&cs=tinysrgb&w=1200&h=760",
+      eyebrow: {ar:"تسوّق حسب النوع", en:"Shop by type"},
+      heading: {ar:"نظارات الشمس", en:"Sunglasses"},
+      cta: {ar:"تسوّقوا الآن ←", en:"Shop now →"},
+      href: "#/shop/sun"
+    }
+  };
   function genderCardHTML(d){
     return '<a class="shop-cat-card" href="'+d.href+'">' +
       '<img src="'+d.img+'" alt="" loading="lazy">' +
@@ -4082,18 +4105,30 @@
       '</span>' +
     '</a>';
   }
-  function renderGenderBanner(filter){
+  /* isAllFramesPage is true only for the dedicated #/shop/all page (reached
+     via the "كل النظارات" nav link) — never for the homepage, even though
+     the homepage's embedded shop grid also runs with filter "all". */
+  function renderGenderBanner(filter, isAllFramesPage){
     var top = document.getElementById("genderBannerTop");
     var inside = document.getElementById("genderBannerInside");
-    if(top) top.hidden = (filter !== "prescription");
-    if(!inside) return;
-    var content = genderBannerContent[filter];
-    if(content){
+    if(!top || !inside) return;
+    if(filter === "prescription" || filter === "sun"){
+      var content = genderBannerContent[filter];
       inside.innerHTML = genderCardHTML(content.men) + genderCardHTML(content.women);
       inside.hidden = false;
     } else {
       inside.hidden = true;
       inside.innerHTML = "";
+    }
+    if(filter === "prescription"){
+      top.innerHTML = genderCardHTML(topGenderBannerContent.men) + genderCardHTML(topGenderBannerContent.women);
+      top.hidden = false;
+    } else if(filter === "all" && isAllFramesPage){
+      top.innerHTML = genderCardHTML(typeBannerContent.prescription) + genderCardHTML(typeBannerContent.sun);
+      top.hidden = false;
+    } else {
+      top.hidden = true;
+      top.innerHTML = "";
     }
   }
 
@@ -4149,7 +4184,7 @@
       document.getElementById("shopEyebrow").textContent = state.lang==="ar" ? "المجموعة" : "The collection";
       document.getElementById("shopHeading").textContent = categoryLabel(route.filter, route.sub);
       applyFilterSelection(route.filter, route.sub, route.shape);
-      renderGenderBanner(route.filter);
+      renderGenderBanner(route.filter, true);
     } else {
       setSectionsHidden(HOME_ONLY_SECTIONS, false);
       productSection.hidden = true;
@@ -4158,7 +4193,7 @@
       document.getElementById("shopEyebrow").textContent = state.lang==="ar" ? "المجموعة" : "The collection";
       document.getElementById("shopHeading").textContent = state.lang==="ar" ? "إطارات مختارة بعناية" : "Frames, chosen with care";
       applyFilterSelection("all","all","all");
-      renderGenderBanner("all");
+      renderGenderBanner("all", false);
     }
     window.scrollTo(0,0);
   }
