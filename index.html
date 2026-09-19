@@ -487,6 +487,7 @@
   /* ---------- shop-by-category banner ---------- */
   .shop-cats{ display:grid; grid-template-columns:1fr; gap:1rem; margin-block-end:2.4rem; }
   @media (min-width:640px){ .shop-cats{ grid-template-columns:1fr 1fr; } }
+  .shop-cats[hidden]{ display:none; }
   .shop-cat-card{
     position:relative; display:block; aspect-ratio:16/10; border-radius:var(--radius-lg); overflow:hidden;
     box-shadow:var(--shadow); isolation:isolate; text-decoration:none; color:inherit;
@@ -1047,6 +1048,24 @@
       <span id="shopBreadcrumbCurrent"></span>
     </div>
     <div class="wrap">
+      <div class="shop-cats gender-banner" id="genderBannerTop" hidden>
+        <a class="shop-cat-card" href="#/shop/prescription/men">
+          <img src="https://images.pexels.com/photos/30316395/pexels-photo-30316395.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1200&amp;h=760" alt="" loading="lazy">
+          <span class="shop-cat-card-label">
+            <span class="eyebrow" data-ar="تسوّق حسب الجنس" data-en="Shop by gender">تسوّق حسب الجنس</span>
+            <h3 data-ar="نظارات طبية للرجال" data-en="Prescription glasses for men">نظارات طبية للرجال</h3>
+            <span class="cat-arrow" data-ar="تسوّقوا الآن ←" data-en="Shop now →">تسوّقوا الآن ←</span>
+          </span>
+        </a>
+        <a class="shop-cat-card" href="#/shop/prescription/women">
+          <img src="https://images.pexels.com/photos/5752315/pexels-photo-5752315.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1200&amp;h=760" alt="" loading="lazy">
+          <span class="shop-cat-card-label">
+            <span class="eyebrow" data-ar="تسوّق حسب الجنس" data-en="Shop by gender">تسوّق حسب الجنس</span>
+            <h3 data-ar="نظارات طبية للنساء" data-en="Prescription glasses for women">نظارات طبية للنساء</h3>
+            <span class="cat-arrow" data-ar="تسوّقوا الآن ←" data-en="Shop now →">تسوّقوا الآن ←</span>
+          </span>
+        </a>
+      </div>
       <div class="shop-cats">
         <a class="shop-cat-card" href="#/shop/sun">
           <img src="https://images.pexels.com/photos/8937082/pexels-photo-8937082.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=1200&amp;h=760" alt="" loading="lazy">
@@ -1084,6 +1103,7 @@
           </div>
         </div>
       </div>
+      <div class="shop-cats gender-banner" id="genderBannerInside" hidden></div>
       <div class="grid" id="productGrid"></div>
     </div>
   </section>
@@ -1440,6 +1460,24 @@
               <div class="auth-field">
                 <label data-ar="اللون (كود Hex)" data-en="Color (hex code)">اللون (كود Hex)</label>
                 <input type="text" id="apColor" placeholder="#2b2b2b" value="#2b2b2b">
+              </div>
+              <div class="auth-field">
+                <label data-ar="خامة الإطار" data-en="Frame material">خامة الإطار</label>
+                <select id="apFrameMaterial">
+                  <option value="acetate" data-ar="أسيتات" data-en="Acetate">أسيتات</option>
+                  <option value="metal" data-ar="معدن" data-en="Metal">معدن</option>
+                  <option value="titanium" data-ar="تيتانيوم" data-en="Titanium">تيتانيوم</option>
+                  <option value="tr90" data-ar="TR90" data-en="TR90">TR90</option>
+                  <option value="mixed" data-ar="معدن وأسيتات" data-en="Metal &amp; acetate">معدن وأسيتات</option>
+                </select>
+              </div>
+              <div class="auth-field">
+                <label data-ar="مقاس العدسة (مم)" data-en="Lens size (mm)">مقاس العدسة (مم)</label>
+                <input type="number" id="apLensSize" min="30" max="80" step="1" placeholder="52">
+              </div>
+              <div class="auth-field">
+                <label data-ar="طول ذراع النظارة (مم)" data-en="Temple length (mm)">طول ذراع النظارة (مم)</label>
+                <input type="number" id="apTempleLength" min="100" max="180" step="1" placeholder="140">
               </div>
               <div class="auth-field">
                 <label data-ar="السعر (ج.م)" data-en="Price (EGP)">السعر (ج.م)</label>
@@ -3818,6 +3856,15 @@
     rect:    {lens:"55", temple:"140"},
     hex:     {lens:"52", temple:"140"}
   };
+  /* Falls back to a shape-based estimate only until the admin fills in the
+     real per-product frame_material / lens_size_mm / temple_length_mm values. */
+  var frameMaterialLabels = {
+    acetate:  {ar:"أسيتات",         en:"Acetate"},
+    metal:    {ar:"معدن",           en:"Metal"},
+    titanium: {ar:"تيتانيوم",       en:"Titanium"},
+    tr90:     {ar:"TR90",           en:"TR90"},
+    mixed:    {ar:"معدن وأسيتات",   en:"Metal & acetate"}
+  };
   var pageProduct = { p:null, lens:"standard", qty:1 };
 
   function fmtPrice(n){
@@ -3924,15 +3971,20 @@
     var colorName = colorNames[p.color] ? colorNames[p.color][state.lang] : "—";
     var genderLabel = (SUB_LABELS[sub] && SUB_LABELS[sub][state.lang]) || sub;
     var typeLabel = isSun ? (state.lang==="ar"?"نظارة شمس":"Sunglasses") : (state.lang==="ar"?"نظارة طبية":"Prescription glasses");
+    var materialLabel = (p.frameMaterial && frameMaterialLabels[p.frameMaterial])
+      ? frameMaterialLabels[p.frameMaterial][state.lang]
+      : (state.lang==="ar"?"أسيتات":"Acetate");
+    var lensSizeValue = (typeof p.lensSize === "number") ? p.lensSize : shapeSpec.lens;
+    var templeValue = (typeof p.templeLength === "number") ? p.templeLength : shapeSpec.temple;
     var specs = [
       { label: state.lang==="ar"?"الماركة":"Brand", value: state.lang==="ar"?"رامي ربيع":"Rami Rabea" },
       { label: state.lang==="ar"?"النوع":"Type", value: typeLabel },
       { label: state.lang==="ar"?"الجنس":"Gender", value: genderLabel },
       { label: state.lang==="ar"?"شكل الإطار":"Frame shape", value: shapeLabels[p.shape] ? shapeLabels[p.shape][state.lang] : p.shape },
       { label: state.lang==="ar"?"لون الإطار":"Frame color", value: colorName },
-      { label: state.lang==="ar"?"خامة الإطار":"Frame material", value: state.lang==="ar"?"أسيتات":"Acetate" },
-      { label: state.lang==="ar"?"مقاس العدسة":"Lens size", value: shapeSpec.lens+" mm" },
-      { label: state.lang==="ar"?"طول ذراع النظارة":"Temple length", value: shapeSpec.temple+" mm" }
+      { label: state.lang==="ar"?"خامة الإطار":"Frame material", value: materialLabel },
+      { label: state.lang==="ar"?"مقاس العدسة":"Lens size", value: lensSizeValue+" mm" },
+      { label: state.lang==="ar"?"طول ذراع النظارة":"Temple length", value: templeValue+" mm" }
     ];
     document.getElementById("productSpecs").innerHTML = specs.map(function(s){
       return '<div class="spec-item"><span class="spec-label">'+s.label+'</span><span class="spec-value">'+s.value+'</span></div>';
@@ -3981,6 +4033,69 @@
     document.getElementById("ppQtyVal").textContent = pageProduct.qty;
     updateProductTotal();
   });
+
+  /* "inside the page" gender-split banner shown on the prescription and
+     sunglasses shop pages, right above the product grid — different wording
+     per type, and (for prescription) different wording again from the
+     top-of-page banner already hardcoded in the HTML above. */
+  var genderBannerContent = {
+    prescription: {
+      men: {
+        img: "https://images.pexels.com/photos/30316395/pexels-photo-30316395.jpeg?auto=compress&cs=tinysrgb&w=1200&h=760",
+        eyebrow: {ar:"لكل شخصية طلّتها", en:"A look for every personality"},
+        heading: {ar:"تشكيلة الرجال الطبية", en:"Men's prescription edit"},
+        cta: {ar:"شوف التشكيلة ←", en:"See the edit →"},
+        href: "#/shop/prescription/men"
+      },
+      women: {
+        img: "https://images.pexels.com/photos/5752315/pexels-photo-5752315.jpeg?auto=compress&cs=tinysrgb&w=1200&h=760",
+        eyebrow: {ar:"لكل شخصية طلّتها", en:"A look for every personality"},
+        heading: {ar:"تشكيلة النساء الطبية", en:"Women's prescription edit"},
+        cta: {ar:"شوف التشكيلة ←", en:"See the edit →"},
+        href: "#/shop/prescription/women"
+      }
+    },
+    sun: {
+      men: {
+        img: "https://images.pexels.com/photos/13505069/pexels-photo-13505069.jpeg?auto=compress&cs=tinysrgb&w=1200&h=760",
+        eyebrow: {ar:"تسوّق حسب الجنس", en:"Shop by gender"},
+        heading: {ar:"نظارات شمس رجالي", en:"Sunglasses for men"},
+        cta: {ar:"تسوّقوا الآن ←", en:"Shop now →"},
+        href: "#/shop/sun/men"
+      },
+      women: {
+        img: "https://images.pexels.com/photos/34091932/pexels-photo-34091932.jpeg?auto=compress&cs=tinysrgb&w=1200&h=760",
+        eyebrow: {ar:"تسوّق حسب الجنس", en:"Shop by gender"},
+        heading: {ar:"نظارات شمس حريمي", en:"Sunglasses for women"},
+        cta: {ar:"تسوّقوا الآن ←", en:"Shop now →"},
+        href: "#/shop/sun/women"
+      }
+    }
+  };
+  function genderCardHTML(d){
+    return '<a class="shop-cat-card" href="'+d.href+'">' +
+      '<img src="'+d.img+'" alt="" loading="lazy">' +
+      '<span class="shop-cat-card-label">' +
+        '<span class="eyebrow">'+d.eyebrow[state.lang]+'</span>' +
+        '<h3>'+d.heading[state.lang]+'</h3>' +
+        '<span class="cat-arrow">'+d.cta[state.lang]+'</span>' +
+      '</span>' +
+    '</a>';
+  }
+  function renderGenderBanner(filter){
+    var top = document.getElementById("genderBannerTop");
+    var inside = document.getElementById("genderBannerInside");
+    if(top) top.hidden = (filter !== "prescription");
+    if(!inside) return;
+    var content = genderBannerContent[filter];
+    if(content){
+      inside.innerHTML = genderCardHTML(content.men) + genderCardHTML(content.women);
+      inside.hidden = false;
+    } else {
+      inside.hidden = true;
+      inside.innerHTML = "";
+    }
+  }
 
   var HOME_ONLY_SECTIONS = ["hero","trustSection","brands","features","testimonials","newsletterSection"];
   function setSectionsHidden(ids, hidden){
@@ -4034,6 +4149,7 @@
       document.getElementById("shopEyebrow").textContent = state.lang==="ar" ? "المجموعة" : "The collection";
       document.getElementById("shopHeading").textContent = categoryLabel(route.filter, route.sub);
       applyFilterSelection(route.filter, route.sub, route.shape);
+      renderGenderBanner(route.filter);
     } else {
       setSectionsHidden(HOME_ONLY_SECTIONS, false);
       productSection.hidden = true;
@@ -4042,6 +4158,7 @@
       document.getElementById("shopEyebrow").textContent = state.lang==="ar" ? "المجموعة" : "The collection";
       document.getElementById("shopHeading").textContent = state.lang==="ar" ? "إطارات مختارة بعناية" : "Frames, chosen with care";
       applyFilterSelection("all","all","all");
+      renderGenderBanner("all");
     }
     window.scrollTo(0,0);
   }
@@ -4348,7 +4465,7 @@
     if(!supabaseClient) return;
     supabaseClient
       .from("products")
-      .select("id,name_ar,name_en,sub_ar,sub_en,category,shape,color_hex,price,quantity,tag_ar,tag_en,product_images(url,sort_order)")
+      .select("id,name_ar,name_en,sub_ar,sub_en,category,shape,color_hex,price,quantity,frame_material,lens_size_mm,temple_length_mm,tag_ar,tag_en,product_images(url,sort_order)")
       .eq("is_active", true)
       .order("id", { ascending:true })
       .then(function(res){
@@ -4365,7 +4482,10 @@
             name: { ar: row.name_ar, en: row.name_en || row.name_ar },
             sub: { ar: row.sub_ar || "", en: row.sub_en || row.sub_ar || "" },
             shape: row.shape,
-            color: row.color_hex || "var(--ink)"
+            color: row.color_hex || "var(--ink)",
+            frameMaterial: row.frame_material || null,
+            lensSize: (typeof row.lens_size_mm === "number") ? row.lens_size_mm : null,
+            templeLength: (typeof row.temple_length_mm === "number") ? row.temple_length_mm : null
           });
           var imgs = (row.product_images || []).slice().sort(function(a,b){ return (a.sort_order||0)-(b.sort_order||0); });
           if(imgs.length) newImages[row.id] = imgs[0].url;
@@ -4591,6 +4711,9 @@
       document.getElementById("apCategory").value = row.category || "men";
       document.getElementById("apShape").value = row.shape || "aviator";
       document.getElementById("apColor").value = row.color_hex || "#2b2b2b";
+      document.getElementById("apFrameMaterial").value = row.frame_material || "acetate";
+      document.getElementById("apLensSize").value = (typeof row.lens_size_mm === "number") ? row.lens_size_mm : "";
+      document.getElementById("apTempleLength").value = (typeof row.temple_length_mm === "number") ? row.temple_length_mm : "";
       document.getElementById("apPrice").value = row.price || 0;
       document.getElementById("apQuantity").value = (typeof row.quantity === "number") ? row.quantity : 0;
       document.getElementById("apTagAr").value = row.tag_ar || "";
@@ -4603,6 +4726,9 @@
       adminEditingId = null;
       adminFormTitle.textContent = state.lang === "ar" ? "إضافة منتج" : "Add product";
       document.getElementById("apColor").value = "#2b2b2b";
+      document.getElementById("apFrameMaterial").value = "acetate";
+      document.getElementById("apLensSize").value = "";
+      document.getElementById("apTempleLength").value = "";
       document.getElementById("apQuantity").value = 0;
       var presetCat = adminActiveSub === "all" ? "men" : adminActiveSub;
       if(adminActiveTab === "sun") presetCat += "_sun";
@@ -4662,6 +4788,9 @@
         category: document.getElementById("apCategory").value,
         shape: document.getElementById("apShape").value,
         color_hex: document.getElementById("apColor").value.trim() || "#2b2b2b",
+        frame_material: document.getElementById("apFrameMaterial").value || "acetate",
+        lens_size_mm: document.getElementById("apLensSize").value ? parseInt(document.getElementById("apLensSize").value, 10) : null,
+        temple_length_mm: document.getElementById("apTempleLength").value ? parseInt(document.getElementById("apTempleLength").value, 10) : null,
         price: parseFloat(document.getElementById("apPrice").value) || 0,
         quantity: Math.max(0, parseInt(document.getElementById("apQuantity").value, 10) || 0),
         tag_ar: document.getElementById("apTagAr").value.trim() || null,
